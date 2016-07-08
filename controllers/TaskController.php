@@ -15,7 +15,7 @@ class TaskController extends ContentContainerController
     public function actionShow()
     {
 
-        $tasks = Task::find()->contentContainer($this->contentContainer)->readable()->all();
+        $tasks = Task::find()->contentContainer($this->contentContainer)->readable()->orderBy(['gauche'=>SORT_ASC])->all();
         $completedTaskCount = Task::find()->contentContainer($this->contentContainer)->readable()->where(['task.status' => 5])->count();
         $canCreateNewTasks = $this->contentContainer->permissionManager->can(new \humhub\modules\tasks\permissions\CreateTask());
         // A créer : profondeur -> niveau de la sous-tâche
@@ -53,6 +53,7 @@ class TaskController extends ContentContainerController
 				}
 				// on récupère la valeur la plus haute de droite 
 				$derniereTache = Task::find()->contentContainer($this->contentContainer)->readable()->orderBy(['droite'=>SORT_DESC])->one();
+				$maxDroite = $derniereTache->droite;
 				// on crée un nouvel objet 'tâche'
 				$task = new Task();
 				// on passe son statut à 1 (1 = en cours, 5 = terminé)
@@ -74,8 +75,9 @@ class TaskController extends ContentContainerController
         
 		/* Ajout d'une sous-tâche de niveau 1 */
 		
-		if ($task === null && $parent != 0) {
-			
+		if ($task === null && $parent != null) {
+				Task::updateAllCounters(['droite' => 2], 'droite > ' . $maDroite);
+				Task::updateAllCounters(['gauche' => 2], 'gauche > ' . $maDroite);
 			// Check permission to create new task
 				if (!$this->contentContainer->permissionManager->can(new \humhub\modules\tasks\permissions\CreateTask())) {
 					throw new HttpException(400, 'Access denied!');
@@ -83,15 +85,19 @@ class TaskController extends ContentContainerController
 				$task = new Task();
 				$task->status = 1 ; // en cours
 				
+				
+				//$task->save();
+				
+				
+				// on précise le content container
+				$task->content->container = $this->contentContainer;
+				// NON On augmente toutes les tâches à droite de la tache mère de 2
+				$tacheMere->droite = $maDroite + 2;
 				// La gauche de la sous tache prend la droite de la tache
 				$task->gauche = $maDroite;
 				// Sa droite prend sa gauche + 1
 				$task->droite = $maDroite + 1;
-				// on précise le content container
-				$task->content->container = $this->contentContainer;
-				// On augmente la droite de la tache mère de 2
-				$tacheMere->droite = $maDroite + 2;
-				
+				$task->description = "" . $maDroite;
 		}
 		
 		// on envoie les modifications dans la base et on regarde si ça passe, si oui redirection vers la page show.php
