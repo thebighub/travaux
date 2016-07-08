@@ -43,7 +43,7 @@ class TaskController extends ContentContainerController
 			$maDroite = $tacheMere->droite;
 		}
 		// Si la tâche n'existe pas (donc si on en crée une nouvelle)
-        if ($task === null ) {
+        if ($task === null && $parent == null) {
 			
             // Check permission to create new task
 				if (!$this->contentContainer->permissionManager->can(new \humhub\modules\tasks\permissions\CreateTask())) {
@@ -69,7 +69,7 @@ class TaskController extends ContentContainerController
 				$task->content->container = $this->contentContainer;
 			
         }
-		/* Ajout d'une sous-tâche
+		/* Ajout d'une sous-tâche */
 		if ($task === null && $parent != 0) {
 			
 			// Check permission to create new task
@@ -79,19 +79,23 @@ class TaskController extends ContentContainerController
 				$task = new Task();
 				$task->status = 1 ; // en cours
 				
-				//Task::updateAllCounters(['gauche' => 2], ['>=', $maDroite]);
+				// Le gauche de la sous tache prend la droite de la tache
 				$task->gauche = $maDroite;
+				// Sa droite prend sa gauche + 1
 				$task->droite = $maDroite + 1;
 				$task->content->container = $this->contentContainer;
+				$tacheMere->droite = $maDroite + 2;
 				
-				
-		}*/
+		}
 		
 		// on envoie les modifications dans la base et on regarde si ça passe, si oui redirection vers la page show.php
         if ($task->load(Yii::$app->request->post())) {
             if ($task->validate()) {
                 if ($task->save()) {
-					//Task::updateAllCounters(['gauche' => 2], 'gauche' < 10); 
+					if($parent!=null){
+					$tacheMere->save();
+					//Task::updateAllCounters(['droite' => 2], 'droite' >= $maDroite);
+				}
                     return $this->htmlRedirect($this->contentContainer->createUrl('show'));
                 }
             }
