@@ -34,14 +34,16 @@ class TaskController extends ContentContainerController
     public function actionEdit() {
 
         $id = (int) Yii::$app->request->get('id'); // on récupère l'id de la tâche
-        $parent = (int) Yii::$app->request->get('parent'); // on récupère l'id de la tâche parente
+        $parent = (int) Yii::$app->request->get('parent'); // on récupère l'id de la tâche parente MARCHE PAS !!!!!!!!
         // on récupère la tâche en cours, grâce à l'id passé en paramètre ($id)
         $task = Task::find()->contentContainer($this->contentContainer)->readable()->where(['task.id' => $id])->one();
-		$tacheMere = Task::find()->contentContainer($this->contentContainer)->readable()->where(['task.id'=> $parent])->one();
 		
+		$tacheMere = Task::findOne($parent);
+		
+		//if ($tacheMere != null) $maDroite = $tacheMere->droite;
 
 		// Si la tâche n'existe pas (donc si on en crée une nouvelle)
-        if ($task === null && $parent == 0) {
+        if ($task === null ) {
 			
             // Check permission to create new task
 				if (!$this->contentContainer->permissionManager->can(new \humhub\modules\tasks\permissions\CreateTask())) {
@@ -61,11 +63,13 @@ class TaskController extends ContentContainerController
 					$task->gauche = $derniereTache->droite + 1;
 					$task->droite = $task->gauche + 1;
 				}
+				//$task->droite = $parent;
+				//$task->droite=$maDroite;	
 				// on spécifie que cette tâche appartient au contentContainer
 				$task->content->container = $this->contentContainer;
 			
         }
-		// Ajout d'une sous-tâche
+		/* Ajout d'une sous-tâche
 		if ($task === null && $parent != 0) {
 			
 			// Check permission to create new task
@@ -81,13 +85,13 @@ class TaskController extends ContentContainerController
 				$task->content->container = $this->contentContainer;
 				
 				
-		}
+		}*/
 		
 		// on envoie les modifications dans la base et on regarde si ça passe, si oui redirection vers la page show.php
         if ($task->load(Yii::$app->request->post())) {
             if ($task->validate()) {
                 if ($task->save()) {
-					Task::updateAllCounters(['gauche' => 2], 'gauche' < 10); 
+					//Task::updateAllCounters(['gauche' => 2], 'gauche' < 10); 
                     return $this->htmlRedirect($this->contentContainer->createUrl('show'));
                 }
             }

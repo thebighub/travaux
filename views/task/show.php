@@ -46,7 +46,7 @@ humhub\modules\tasks\Assets::register($this);
                             ]);
                             ?>
                         </div>
-
+						
                         <div class="completed-check hidden">
                             <?php
                             echo \humhub\widgets\AjaxButton::widget([
@@ -144,7 +144,7 @@ humhub\modules\tasks\Assets::register($this);
                             </div>
                             <!-- Ajout du bouton sous-tâche -->
 							<div class="task-controls pull-right">
-								<a href="<?php echo $contentContainer->createUrl('edit', ['id' => 0,'parent' => $task->id]); ?>"
+								<a href="<?php echo $contentContainer->createUrl('edit', ['id' => null,'parent' => $task->id]); ?>"
                                    class="tt"
                                    data-target="#globalModal" data-toggle="tooltip"
                                    data-placement="top" data-original-title="Ajouter sous-tâche"><i class="fa fa-plus"></i>Ajouter sous-tâche</a>
