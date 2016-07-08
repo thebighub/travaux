@@ -42,15 +42,17 @@ class TaskController extends ContentContainerController
 			$tacheMere = Task::findOne($parent);
 			$maDroite = $tacheMere->droite;
 		}
-		// Si la tâche n'existe pas (donc si on en crée une nouvelle)
+		
+		/* Création d'un nouveau travail */
+		
         if ($task === null && $parent == null) {
 			
-            // Check permission to create new task
+            // Check permission de créer un nouveau travail
 				if (!$this->contentContainer->permissionManager->can(new \humhub\modules\tasks\permissions\CreateTask())) {
-					throw new HttpException(400, 'Access denied!');
+					throw new HttpException(400, 'Acceès refusé, tu crois quoi ?!');
 				}
-				// on récupère la dernière tâche 
-				$derniereTache = Task::find()->contentContainer($this->contentContainer)->readable()->orderBy(['id'=>SORT_DESC])->one();
+				// on récupère la valeur la plus haute de droite 
+				$derniereTache = Task::find()->contentContainer($this->contentContainer)->readable()->orderBy(['droite'=>SORT_DESC])->one();
 				// on crée un nouvel objet 'tâche'
 				$task = new Task();
 				// on passe son statut à 1 (1 = en cours, 5 = terminé)
@@ -69,7 +71,9 @@ class TaskController extends ContentContainerController
 				$task->content->container = $this->contentContainer;
 			
         }
-		/* Ajout d'une sous-tâche */
+        
+		/* Ajout d'une sous-tâche de niveau 1 */
+		
 		if ($task === null && $parent != 0) {
 			
 			// Check permission to create new task
@@ -79,11 +83,13 @@ class TaskController extends ContentContainerController
 				$task = new Task();
 				$task->status = 1 ; // en cours
 				
-				// Le gauche de la sous tache prend la droite de la tache
+				// La gauche de la sous tache prend la droite de la tache
 				$task->gauche = $maDroite;
 				// Sa droite prend sa gauche + 1
 				$task->droite = $maDroite + 1;
+				// on précise le content container
 				$task->content->container = $this->contentContainer;
+				// On augmente la droite de la tache mère de 2
 				$tacheMere->droite = $maDroite + 2;
 				
 		}
@@ -93,7 +99,8 @@ class TaskController extends ContentContainerController
             if ($task->validate()) {
                 if ($task->save()) {
 					if($parent!=null){
-					$tacheMere->save();
+					// On sauvegarde la modification de la tache mère
+						$tacheMere->save();
 					//Task::updateAllCounters(['droite' => 2], 'droite' >= $maDroite);
 				}
                     return $this->htmlRedirect($this->contentContainer->createUrl('show'));
@@ -124,28 +131,28 @@ class TaskController extends ContentContainerController
 
 
 
-
+	// Fonction pour assigner un utilisateur à une tâche
     public function actionAssign()
     {
         $task = $this->getTaskById((int) Yii::$app->request->get('taskId'));
         $task->assignUser();
         return $this->renderTask($task);
     }
-
+	// Désassigner l'utilisateur
     public function actionUnAssign()
     {
         $task = $this->getTaskById((int) Yii::$app->request->get('taskId'));
         $task->unassignUser();
         return $this->renderTask($task);
     }
-
+	// Changer la progression
     public function actionChangePercent()
     {
         $task = $this->getTaskById((int) Yii::$app->request->get('taskId'));
         $task->changePercent((int) Yii::$app->request->get('percent'));
         return $this->renderTask($task);
     }
-
+	// Changer le statut
     public function actionChangeStatus()
     {
         $task = $this->getTaskById((int) Yii::$app->request->get('taskId'));
@@ -153,7 +160,7 @@ class TaskController extends ContentContainerController
         $task->changeStatus($status);
         return $this->renderTask($task);
     }
-
+	// Afficher les modifications
     protected function renderTask($task)
     {
         Yii::$app->response->format = 'json';
@@ -162,7 +169,7 @@ class TaskController extends ContentContainerController
         $json['wallEntryId'] = $task->content->getFirstWallEntryId();
         return $json;
     }
-
+	// Récupérer une tâche par son id
     protected function getTaskById($id)
     {
         $task = Task::find()->contentContainer($this->contentContainer)->readable()->where(['task.id' => $id])->one();
@@ -171,5 +178,12 @@ class TaskController extends ContentContainerController
         }
         return $task;
     }
-
+	/* Récupérer une tâche et ses sous-tâches : 
+	SELECT noeud.title
+	FROM task AS noeud, task AS parent
+	WHERE noeud.gauche
+	BETWEEN parent.gauche
+	AND parent.droite
+	AND parent.id = 1
+	ORDER BY noeud.gauche	*/
 }
