@@ -34,14 +34,14 @@ class TaskController extends ContentContainerController
     public function actionEdit() {
 
         $id = (int) Yii::$app->request->get('id'); // on récupère l'id de la tâche
-        $parent = (int) Yii::$app->request->get('parent'); // on récupère l'id de la tâche parente MARCHE PAS !!!!!!!!
+        $parent = (int) Yii::$app->request->get('parent'); // on récupère l'id de la tâche parente 
         // on récupère la tâche en cours, grâce à l'id passé en paramètre ($id)
         $task = Task::find()->contentContainer($this->contentContainer)->readable()->where(['task.id' => $id])->one();
 		
-		$tacheMere = Task::findOne($parent);
-		
-		//if ($tacheMere != null) $maDroite = $tacheMere->droite;
-
+		if ($parent != null) {
+			$tacheMere = Task::findOne($parent);
+			$maDroite = $tacheMere->droite;
+		}
 		// Si la tâche n'existe pas (donc si on en crée une nouvelle)
         if ($task === null ) {
 			
@@ -63,8 +63,8 @@ class TaskController extends ContentContainerController
 					$task->gauche = $derniereTache->droite + 1;
 					$task->droite = $task->gauche + 1;
 				}
-				//$task->droite = $parent;
-				//$task->droite=$maDroite;	
+				
+					
 				// on spécifie que cette tâche appartient au contentContainer
 				$task->content->container = $this->contentContainer;
 			

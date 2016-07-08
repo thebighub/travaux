@@ -74,7 +74,7 @@ use yii\helpers\Url;
                             'type' => 'POST',
                             'beforeSend' => new yii\web\JsExpression('function(){ setModalLoader(); }'),
                             'success' => new yii\web\JsExpression('function(html){ $("#globalModal").html(html); }'),
-                            'url' => $task->content->container->createUrl('/tasks/task/edit', ['id' => $task->id]),
+                            'url' => $task->content->container->createUrl('/tasks/task/edit', ['id' => $task->id, 'parent'=>$parent]),
                         ],
                         'htmlOptions' => [
                             'class' => 'btn btn-primary'
