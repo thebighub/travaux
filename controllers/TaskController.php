@@ -41,6 +41,7 @@ class TaskController extends ContentContainerController
 		if ($parent != null) {
 			$tacheMere = Task::findOne($parent);
 			$maDroite = $tacheMere->droite;
+			$maGauche = $tacheMere->gauche;
 		}
 		
 		/* Création d'un nouveau travail */
@@ -49,7 +50,7 @@ class TaskController extends ContentContainerController
 			
             // Check permission de créer un nouveau travail
 				if (!$this->contentContainer->permissionManager->can(new \humhub\modules\tasks\permissions\CreateTask())) {
-					throw new HttpException(400, 'Acceès refusé, tu crois quoi ?!');
+					throw new HttpException(400, 'Accès refusé, tu crois quoi ?!');
 				}
 				// on récupère la valeur la plus haute de droite 
 				$derniereTache = Task::find()->contentContainer($this->contentContainer)->readable()->orderBy(['droite'=>SORT_DESC])->one();
@@ -76,6 +77,7 @@ class TaskController extends ContentContainerController
 		/* Ajout d'une sous-tâche de niveau 1 */
 		
 		if ($task === null && $parent != null) {
+			
 				Task::updateAllCounters(['droite' => 2], 'droite > ' . $maDroite);
 				Task::updateAllCounters(['gauche' => 2], 'gauche > ' . $maDroite);
 			// Check permission to create new task
@@ -91,7 +93,7 @@ class TaskController extends ContentContainerController
 				
 				// on précise le content container
 				$task->content->container = $this->contentContainer;
-				// NON On augmente toutes les tâches à droite de la tache mère de 2
+				//  On augmente toutes la droite de la tache mère de 2
 				$tacheMere->droite = $maDroite + 2;
 				// La gauche de la sous tache prend la droite de la tache
 				$task->gauche = $maDroite;
@@ -107,7 +109,6 @@ class TaskController extends ContentContainerController
 					if($parent!=null){
 					// On sauvegarde la modification de la tache mère
 						$tacheMere->save();
-					//Task::updateAllCounters(['droite' => 2], 'droite' >= $maDroite);
 				}
                     return $this->htmlRedirect($this->contentContainer->createUrl('show'));
                 }
@@ -192,4 +193,43 @@ class TaskController extends ContentContainerController
 	AND parent.droite
 	AND parent.id = 1
 	ORDER BY noeud.gauche	*/
+	
+	/* Récupérer la profondeur de l'arbre entier : 
+	 
+	SELECT node.title, (
+	COUNT( parent.id ) -1
+	) AS depth
+	FROM task AS node, task AS parent
+	WHERE node.gauche
+	BETWEEN parent.gauche
+	AND parent.droite
+	GROUP BY node.id
+	ORDER BY node.gauche
+	* 
+	* 
+	* 
+	* Récupérer la profondeur d'un sous-arbre
+	* 
+	* SELECT node.title, (COUNT(parent.id) - (sub_tree.depth + 1)) AS depth
+		FROM task AS node,
+        task AS parent,
+        task AS sub_parent,
+        (
+                SELECT node.title, (COUNT(parent.id) - 1) AS depth
+                FROM task AS node,
+                task AS parent
+                WHERE node.gauche BETWEEN parent.gauche AND parent.droite
+                AND node.id = $task->id
+                GROUP BY node.title
+                ORDER BY node.gauche
+        )AS sub_tree
+		WHERE node.gauche BETWEEN parent.gauche AND parent.droite
+        AND node.gauche BETWEEN sub_parent.gauche AND sub_parent.droite
+		AND sub_parent.title = sub_tree.title
+        
+		GROUP BY node.id
+		ORDER BY node.gauche;
+	*/
+	
+	
 }

@@ -12,9 +12,17 @@ humhub\modules\tasks\Assets::register($this);
 
         <div id="open-tasks">
             <?php foreach ($tasks as $task) : ?>
-
+				<?php $profondeur = (new \Yii\db\Query())
+				->select('COUNT(parent.id)-1')
+				->from(['task node', 'task parent'])
+				->where(['between','node.gauche','parent.gauche','parent.droite'])
+				->andWhere(['parent.id'=>$task->id])
+				->groupBy(['node.id'])
+				->orderBy('node.gauche')
+				->one(); 
+				$marge = 25 * $profondeur;?>
                 <?php if ($task->status == Task::STATUS_OPEN) : ?>
-                    <div class="media task" id="task_<?php echo $task->id; ?>">
+                    <div class="media task" id="task_<?php echo $task->id; ?>" style="margin-left:<?php echo $marge; ?>px">
 
                         <?php
                         $currentUserAssigned = false;
