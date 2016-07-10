@@ -194,7 +194,7 @@ class TaskController extends ContentContainerController
 	AND parent.id = 1
 	ORDER BY noeud.gauche	*/
 	
-	/* Récupérer la profondeur de l'arbre entier : 
+	/* Récupérer la profondeur d'un noeud : 
 	 
 	SELECT node.title, (
 	COUNT( parent.id ) -1
@@ -203,6 +203,7 @@ class TaskController extends ContentContainerController
 	WHERE node.gauche
 	BETWEEN parent.gauche
 	AND parent.droite
+	AND id = $task->id
 	GROUP BY node.id
 	ORDER BY node.gauche
 	* 
@@ -220,7 +221,7 @@ class TaskController extends ContentContainerController
                 task AS parent
                 WHERE node.gauche BETWEEN parent.gauche AND parent.droite
                 AND node.id = $task->id
-                GROUP BY node.title
+                GROUP BY node.id
                 ORDER BY node.gauche
         )AS sub_tree
 		WHERE node.gauche BETWEEN parent.gauche AND parent.droite
@@ -229,7 +230,27 @@ class TaskController extends ContentContainerController
         
 		GROUP BY node.id
 		ORDER BY node.gauche;
-	*/
-	
+		 
+		 /* "traduction yii"
+				$sub_query=(new \Yii\db\Query())
+	           ->select('snode.title,(COUNT(parent.id) - 1) AS depth')
+	           ->from(['node'=>'task','parent'=>'task'])
+	           ->where(['between','node.gauche','parent.gauche','parent.droite'])
+	           ->andWhere(['node.id'=>$task->id])
+	           ->groupBy('node.id')
+	           ->orderBy('node.gauche');
+	           
+				$profondeur = (new \Yii\db\Query())
+				->select('node.title,(COUNT(parent.id) - (sub_tree.depth + 1)) as depth')
+				->from(['node' => 'task', 'parent'=>'task','sub_parent'=>'task','sub_tree'=>$sub_query])
+				->where(['between','node.gauche','parent.gauche','parent.droite'])
+				->andWhere(['between','node.gauche','sub_parent.gauche','sub_parent.droite'])
+				->andWhere(['sub_parent.title'=>'sub_tree.title'])
+				->groupBy(['node.id'])
+				->orderBy('node.gauche')
+				->one();
+				$marge = 25 * $profondeur; 
+				echo "prof : " . $profondeur['depth']; */
+	*/ 
 	
 }

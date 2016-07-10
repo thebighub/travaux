@@ -9,19 +9,20 @@ humhub\modules\tasks\Assets::register($this);
 
 <div class="panel panel-default">
     <div class="panel-body">
-
+		
         <div id="open-tasks">
             <?php foreach ($tasks as $task) : ?>
-				<?php $profondeur = (new \Yii\db\Query())
-				->select('COUNT(parent.id)-1')
-				->from(['task node', 'task parent'])
-				->where(['between','node.gauche','parent.gauche','parent.droite'])
-				->andWhere(['parent.id'=>$task->id])
-				->groupBy(['node.id'])
-				->orderBy('node.gauche')
-				->one(); 
-				$marge = 25 * $profondeur;?>
-                <?php if ($task->status == Task::STATUS_OPEN) : ?>
+				<?php 
+				
+				 $depth = Yii::$app->db->createCommand('SELECT node.title, (COUNT(parent.id) - 1) AS depth
+				FROM task AS node,
+						task AS parent
+				WHERE node.gauche BETWEEN parent.gauche AND parent.droite
+				AND node.id=' . $task->id . ' 
+				GROUP BY node.id
+				ORDER BY node.gauche;')->queryOne();
+				$marge = 25 * $depth['depth']; // Marge gauche de 25 px pour chaque niveau de sous-tache
+                 if ($task->status == Task::STATUS_OPEN) : ?>
                     <div class="media task" id="task_<?php echo $task->id; ?>" style="margin-left:<?php echo $marge; ?>px">
 
                         <?php
