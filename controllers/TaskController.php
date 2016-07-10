@@ -19,6 +19,7 @@ class TaskController extends ContentContainerController
         $completedTaskCount = Task::find()->contentContainer($this->contentContainer)->readable()->where(['task.status' => 5])->count();
         $canCreateNewTasks = $this->contentContainer->permissionManager->can(new \humhub\modules\tasks\permissions\CreateTask());
         // A créer : profondeur -> niveau de la sous-tâche
+        
         //           subtaskcount -> nombre d'enfants
         // Variables envoyées à la page views/tasks/show.php :
         return $this->render('show', [

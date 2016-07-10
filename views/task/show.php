@@ -13,7 +13,7 @@ humhub\modules\tasks\Assets::register($this);
         <div id="open-tasks">
             <?php foreach ($tasks as $task) : ?>
 				<?php 
-				
+				// Calcul du niveau de la tâche
 				 $profondeur = Yii::$app->db->createCommand('SELECT node.title, (COUNT(parent.id) - 1) AS depth
 							FROM task AS node,
 									task AS parent
@@ -21,8 +21,10 @@ humhub\modules\tasks\Assets::register($this);
 							AND node.id=' . $task->id . ' 
 							GROUP BY node.id
 							ORDER BY node.gauche;')->queryOne();
+							
+							$niveau = $profondeur['depth'];
 							// Marge gauche de 25 px pour chaque niveau de sous-tache
-							$marge = 25 * $profondeur['depth']; 
+							$marge = 25 * $niveau; 
                  if ($task->status == Task::STATUS_OPEN) : ?>
                     <div class="media task" id="task_<?php echo $task->id; ?>" style="margin-left:<?php echo $marge; ?>px">
 
@@ -164,7 +166,7 @@ humhub\modules\tasks\Assets::register($this);
 
                         </div>
                         <!-- Bloc description (masqué par défaut, visible en cliquant sur l'oeil) -->
-						<div class="media-body">
+						<div class="media-body description">
 							<div class="collapse" id="bloc_description_<?php echo $task->id; ?>">
 								<?php echo humhub\widgets\MarkdownView::widget(array('markdown' => $task->description)); ?>
 							</div>

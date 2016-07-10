@@ -16,9 +16,11 @@ Après amélioration :
 TODO
 ----
 - Ajouter une barre de progression, calculée automatiquement en fonction du statut des sous-tâches
-- Intégrer les tâches au calendrier. (plus tard)
+- Intégrer les tâches au calendrier. (plus tard)  
+
 Credits
--------
+-------  
+
 For more  informations visit:  
   <https://github.com/humhub/humhub-modules-tasks>  
   <https://github.com/thebighub/travaux>
