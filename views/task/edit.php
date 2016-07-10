@@ -2,6 +2,7 @@
 use yii\bootstrap\ActiveForm;
 use yii\helpers\Html;
 use yii\helpers\Url;
+//use yii\jui\SliderInput;
 ?>
 
 <div class="modal-dialog modal-dialog-normal animated fadeIn">
@@ -36,7 +37,15 @@ use yii\helpers\Url;
              <?php echo \humhub\widgets\MarkdownEditor::widget(array('fieldId' => 'description')); ?>
             <p class="help-block"><?php echo 'Vous pouvez utiliser la syntaxe Markdown #niceandsweet'; ?></p>
 
-        </div>
+			</div>
+			<div class="form-group">
+				<?php echo $form->field($task, 'percent')->widget(\yii\jui\SliderInput::classname(), [
+					'clientOptions' => [
+						'min' => 0,
+						'max' => 100,
+    ],
+]) ?>
+			</div>
             <div class="row">
                 <div class="col-md-8">
 

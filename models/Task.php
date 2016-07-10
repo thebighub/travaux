@@ -62,6 +62,7 @@ class Task extends ContentActiveRecord implements \humhub\modules\search\interfa
             'assignedUserGuids' => Yii::t('TasksModule.base','Assigned user(s)'),
             'deadline' => Yii::t('TasksModule.base','Deadline'),
             'description' => 'Description',
+            'percent' => 'Progression',
         );
     }
 

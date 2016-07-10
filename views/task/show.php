@@ -91,15 +91,15 @@ humhub\modules\tasks\Assets::register($this);
                                 ?>
                                 <span class="<?php echo $class; ?>"><?php echo date("d. M", $timestamp); ?></span>
                             <?php endif; ?>
-							<?php // lien pour afficher la description 
-								if($task->description != null) :
+							<?php // Bouton pour afficher la description 
+								if($task->description != null || $task->percent > 0) :
 							?>
-							
+							<?php if($task->description != null) $message='Afficher/Masquer description';else $message='Afficher/Masquer progression'; ?>
 							<a data-toggle="collapse" class="tt"
                                    href="#bloc_description_<?php echo $task->id; ?>"
                                    onclick="$('#bloc_description_<?php echo $task->id; ?>').show();return false;"
                                    aria-expanded="false" data-toggle="tooltip"
-                                   data-placement="top" data-original-title="Afficher/Masquer description"
+                                   data-placement="top" data-original-title="<?php echo $message; ?>"
                                    ><i
                                         class="fa fa-eye"></i> 
                                 </a>
@@ -109,7 +109,7 @@ humhub\modules\tasks\Assets::register($this);
                                 <a href="<?php echo $contentContainer->createUrl('edit', ['id' => $task->id]); ?>"
                                    class="tt"
                                    data-target="#globalModal" data-toggle="tooltip"
-                                   data-placement="top" data-original-title="Edit Task"><i class="fa fa-pencil"></i></a>
+                                   data-placement="top" data-original-title="Modifier la <?php if($niveau>0)echo 'sous-';if($niveau>1)echo 'sous-';?>tâche"><i class="fa fa-pencil"></i></a>
 
 								
                                 <?php // Bouton suppression tâche
@@ -159,7 +159,7 @@ humhub\modules\tasks\Assets::register($this);
 								<a href="<?php echo $contentContainer->createUrl('edit', ['id' => null,'parent' => $task->id]); ?>"
                                    class="tt"
                                    data-target="#globalModal" data-toggle="tooltip"
-                                   data-placement="top" data-original-title="Ajouter sous-tâche"><i class="fa fa-plus"></i>Ajouter sous-tâche</a>
+                                   data-placement="top" data-original-title="Ajouter sous-tâche"><i class="fa fa-plus"></i></a>
 							</div>
 							
                             <div class="clearfix"></div>
@@ -168,6 +168,26 @@ humhub\modules\tasks\Assets::register($this);
                         <!-- Bloc description (masqué par défaut, visible en cliquant sur l'oeil) -->
 						<div class="media-body description">
 							<div class="collapse" id="bloc_description_<?php echo $task->id; ?>">
+							<!-- Barre de progression -->
+							<?php $prog = $task->percent; 
+								if ($prog <= 25)
+									$class='progress-bar-danger';
+								else if ($prog>25 && $prog<= 50)
+									$class='progress-bar-warning';
+								else if ($prog>50 && $prog<= 75)
+									$class='progress-bar-info';
+								else if ($prog>75) 
+									$class='progress-bar-success';
+								else $class='progress-bar';
+																					
+								?>
+							Progression :
+							<div class="progress" style="height:15px;line-height:15px;">
+							  <div class="<?php echo $class; ?>" role="progressbar" aria-valuenow="<?php echo $prog; ?>"
+							  aria-valuemin="0" aria-valuemax="100" style="width:<?php echo $prog; ?>%">
+								<div style="text-align:center"><?php echo $prog; ?>%</div>
+							  </div>
+							</div>
 								<?php echo humhub\widgets\MarkdownView::widget(array('markdown' => $task->description)); ?>
 							</div>
 						</div>
@@ -289,7 +309,7 @@ humhub\modules\tasks\Assets::register($this);
                                 <a href="<?php echo $contentContainer->createUrl('edit', ['id' => $task->id]); ?>"
                                    class="tt"
                                    data-target="#globalModal" data-toggle="tooltip"
-                                   data-placement="top" data-original-title="Edit Task"><i class="fa fa-pencil"></i></a>
+                                   data-placement="top" data-original-title="Modifier la <?php if($niveau>0) echo 'sous-'; ?>tâche"><i class="fa fa-pencil"></i></a>
 
 
                                 <?php
