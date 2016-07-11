@@ -1,0 +1,2313 @@
+<!DOCTYPE html>
+<!-- saved from url=(0068)http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/ -->
+<html lang="en-US" prefix="og: http://ogp.me/ns#" class="js"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="profile" href="http://gmpg.org/xfn/11">
+		<link rel="pingback" href="http://mikehillyer.com/wordpress/xmlrpc.php">
+		<script async="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/analytics.js"></script><script>(function(html){html.className = html.className.replace(/\bno-js\b/,'js')})(document.documentElement);</script>
+<title>Managing Hierarchical Data in MySQL — Mike Hillyer's Personal Webspace</title>
+
+<!-- This site is optimized with the Yoast SEO plugin v3.2.5 - https://yoast.com/wordpress/plugins/seo/ -->
+<link rel="canonical" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/">
+<meta property="og:locale" content="en_US">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace">
+<meta property="og:description" content="Introduction Most users at one time or another have dealt with hierarchical data in a SQL database and no doubt learned that the management of hierarchical data is not what a relational database is intended for. The tables of a relational database are not hierarchical (like XML), but are simply a flat list. Hierarchical data … Continue reading &quot;Managing Hierarchical Data in MySQL&quot;">
+<meta property="og:url" content="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/">
+<meta property="og:site_name" content="Mike Hillyer&#39;s Personal Webspace">
+<meta property="article:section" content="Uncategorized">
+<meta property="og:image" content="http://mikehillyer.com/media//categories.png">
+<meta property="og:image" content="http://mikehillyer.com/media//nested_categories.png">
+<meta property="og:image" content="http://mikehillyer.com/media//nested_numbered.png">
+<meta property="og:image" content="http://mikehillyer.com/media//numbered_tree.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:description" content="Introduction Most users at one time or another have dealt with hierarchical data in a SQL database and no doubt learned that the management of hierarchical data is not what a relational database is intended for. The tables of a relational database are not hierarchical (like XML), but are simply a flat list. Hierarchical data … Continue reading &quot;Managing Hierarchical Data in MySQL&quot;">
+<meta name="twitter:title" content="Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace">
+<meta name="twitter:image" content="http://mikehillyer.com/media//categories.png">
+<!-- / Yoast SEO plugin. -->
+
+<link rel="alternate" type="application/rss+xml" title="Mike Hillyer&#39;s Personal Webspace » Feed" href="http://mikehillyer.com/feed/">
+<link rel="alternate" type="application/rss+xml" title="Mike Hillyer&#39;s Personal Webspace » Comments Feed" href="http://mikehillyer.com/comments/feed/">
+<link rel="alternate" type="application/rss+xml" title="Mike Hillyer&#39;s Personal Webspace » Managing Hierarchical Data in MySQL Comments Feed" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/feed/">
+		<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"https:\/\/s.w.org\/images\/core\/emoji\/72x72\/","ext":".png","source":{"concatemoji":"http:\/\/mikehillyer.com\/wordpress\/wp-includes\/js\/wp-emoji-release.min.js?ver=4.5.2"}};
+			!function(a,b,c){function d(a){var c,d,e,f=b.createElement("canvas"),g=f.getContext&&f.getContext("2d"),h=String.fromCharCode;if(!g||!g.fillText)return!1;switch(g.textBaseline="top",g.font="600 32px Arial",a){case"flag":return g.fillText(h(55356,56806,55356,56826),0,0),f.toDataURL().length>3e3;case"diversity":return g.fillText(h(55356,57221),0,0),c=g.getImageData(16,16,1,1).data,d=c[0]+","+c[1]+","+c[2]+","+c[3],g.fillText(h(55356,57221,55356,57343),0,0),c=g.getImageData(16,16,1,1).data,e=c[0]+","+c[1]+","+c[2]+","+c[3],d!==e;case"simple":return g.fillText(h(55357,56835),0,0),0!==g.getImageData(16,16,1,1).data[0];case"unicode8":return g.fillText(h(55356,57135),0,0),0!==g.getImageData(16,16,1,1).data[0]}return!1}function e(a){var c=b.createElement("script");c.src=a,c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var f,g,h,i;for(i=Array("simple","flag","unicode8","diversity"),c.supports={everything:!0,everythingExceptFlag:!0},h=0;h<i.length;h++)c.supports[i[h]]=d(i[h]),c.supports.everything=c.supports.everything&&c.supports[i[h]],"flag"!==i[h]&&(c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&c.supports[i[h]]);c.supports.everythingExceptFlag=c.supports.everythingExceptFlag&&!c.supports.flag,c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.everything||(g=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",g,!1),a.addEventListener("load",g,!1)):(a.attachEvent("onload",g),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),f=c.source||{},f.concatemoji?e(f.concatemoji):f.wpemoji&&f.twemoji&&(e(f.twemoji),e(f.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script><script src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/wp-emoji-release.min.js" type="text/javascript"></script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+<link rel="stylesheet" id="wp-syntax-css-css" href="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/wp-syntax.css" type="text/css" media="all">
+<link rel="stylesheet" id="twentysixteen-fonts-css" href="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/css" type="text/css" media="all">
+<link rel="stylesheet" id="genericons-css" href="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/genericons.css" type="text/css" media="all">
+<link rel="stylesheet" id="twentysixteen-style-css" href="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/style.css" type="text/css" media="all">
+<!--[if lt IE 10]>
+<link rel='stylesheet' id='twentysixteen-ie-css'  href='http://mikehillyer.com/wordpress/wp-content/themes/twentysixteen/css/ie.css?ver=20150930' type='text/css' media='all' />
+<![endif]-->
+<!--[if lt IE 9]>
+<link rel='stylesheet' id='twentysixteen-ie8-css'  href='http://mikehillyer.com/wordpress/wp-content/themes/twentysixteen/css/ie8.css?ver=20151230' type='text/css' media='all' />
+<![endif]-->
+<!--[if lt IE 8]>
+<link rel='stylesheet' id='twentysixteen-ie7-css'  href='http://mikehillyer.com/wordpress/wp-content/themes/twentysixteen/css/ie7.css?ver=20150930' type='text/css' media='all' />
+<![endif]-->
+<!-- This site uses the Google Analytics by MonsterInsights plugin v5.5 - Universal enabled - https://www.monsterinsights.com/ -->
+<script type="text/javascript">
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+		m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','//www.google-analytics.com/analytics.js','__gaTracker');
+
+	__gaTracker('create', 'UA-1813384-9', 'auto');
+	__gaTracker('set', 'forceSSL', true);
+	__gaTracker('require', 'displayfeatures');
+	__gaTracker('send','pageview');
+
+</script>
+<!-- / Google Analytics by MonsterInsights -->
+<!--[if lt IE 9]>
+<script type='text/javascript' src='http://mikehillyer.com/wordpress/wp-content/themes/twentysixteen/js/html5.js?ver=3.7.3'></script>
+<![endif]-->
+<script type="text/javascript" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/jquery.js"></script>
+<script type="text/javascript" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/jquery-migrate.min.js"></script>
+<link rel="https://api.w.org/" href="http://mikehillyer.com/wp-json/">
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://mikehillyer.com/wordpress/xmlrpc.php?rsd">
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://mikehillyer.com/wordpress/wp-includes/wlwmanifest.xml"> 
+<meta name="generator" content="WordPress 4.5.2">
+<link rel="shortlink" href="http://mikehillyer.com/?p=72">
+<link rel="alternate" type="application/json+oembed" href="http://mikehillyer.com/wp-json/oembed/1.0/embed?url=http%3A%2F%2Fmikehillyer.com%2Farticles%2Fmanaging-hierarchical-data-in-mysql%2F">
+<link rel="alternate" type="text/xml+oembed" href="http://mikehillyer.com/wp-json/oembed/1.0/embed?url=http%3A%2F%2Fmikehillyer.com%2Farticles%2Fmanaging-hierarchical-data-in-mysql%2F&amp;format=xml">
+		<style type="text/css">.recentcomments a{display:inline !important;padding:0 !important;margin:0 !important;}</style>
+		</head>
+
+<body class="page page-id-72 page-child parent-pageid-67 page-template-default" cz-shortcut-listen="true">
+<div id="page" class="site">
+	<div class="site-inner">
+		<a class="skip-link screen-reader-text" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#content">Skip to content</a>
+
+		<header id="masthead" class="site-header" role="banner">
+			<div class="site-header-main">
+				<div class="site-branding">
+											<p class="site-title"><a href="http://mikehillyer.com/" rel="home">Mike Hillyer's Personal Webspace</a></p>
+									</div><!-- .site-branding -->
+
+									<button id="menu-toggle" class="menu-toggle">Menu</button>
+
+					<div id="site-header-menu" class="site-header-menu">
+													<nav id="site-navigation" class="main-navigation" role="navigation" aria-label="Primary Menu">
+								<div class="menu-top-container"><ul id="menu-top" class="primary-menu"><li id="menu-item-351" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-351"><a href="http://mikehillyer.com/about-me/">About Me</a></li>
+</ul></div>							</nav><!-- .main-navigation -->
+						
+											</div><!-- .site-header-menu -->
+							</div><!-- .site-header-main -->
+
+											<div class="header-image">
+					<a href="http://mikehillyer.com/" rel="home">
+						<img src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/cropped-472351_4882136178012_15748745_o.jpg" srcset="http://mikehillyer.com/media/cropped-472351_4882136178012_15748745_o-300x70.jpg 300w, http://mikehillyer.com/media/cropped-472351_4882136178012_15748745_o-150x35.jpg 150w, http://mikehillyer.com/media/cropped-472351_4882136178012_15748745_o-768x179.jpg 768w, http://mikehillyer.com/media/cropped-472351_4882136178012_15748745_o-1024x239.jpg 1024w, http://mikehillyer.com/media/cropped-472351_4882136178012_15748745_o.jpg 1200w" sizes="(max-width: 709px) 85vw, (max-width: 909px) 81vw, (max-width: 1362px) 88vw, 1200px" width="1200" height="280" alt="Mike Hillyer&#39;s Personal Webspace">
+					</a>
+				</div><!-- .header-image -->
+					</header><!-- .site-header -->
+
+		<div id="content" class="site-content">
+
+<div id="primary" class="content-area">
+	<main id="main" class="site-main" role="main">
+		
+<article id="post-72" class="post-72 page type-page status-publish hentry">
+	<header class="entry-header">
+		<h1 class="entry-title">Managing Hierarchical Data in MySQL</h1>	</header><!-- .entry-header -->
+
+	
+	<div class="entry-content">
+		<h3>Introduction</h3>
+<p>Most users at one time or another have dealt with hierarchical data in a SQL database and no doubt learned that the management of hierarchical data is not what a relational database is intended for. The tables of a relational database are not hierarchical (like XML), but are simply a flat list. Hierarchical data has a parent-child relationship that is not naturally represented in a relational database table.</p>
+<p>For our purposes, hierarchical data is a collection of data where each item has a single parent and zero or more children (with the exception of the root item, which has no parent). Hierarchical data can be found in a variety of database applications, including forum and mailing list threads, business organization charts, content management categories, and product categories. For our purposes we will use the following product category hierarchy from an fictional electronics store:</p>
+<p><img class="size-full wp-image-74 alignnone" title="categories" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/categories.png" alt="" width="664" height="362"></p>
+<p>These categories form a hierarchy in much the same way as the other examples cited above. In this article we will examine two models for dealing with hierarchical data in MySQL, starting with the traditional adjacency list model.</p>
+<h3>The Adjacency List Model</h3>
+<p>Typically the example categories shown above will be stored in a table like the following (I’m including full CREATE and INSERT statements so you can follow along):</p>
+<pre class="samplecode">CREATE TABLE category(
+        category_id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(20) NOT NULL,
+        parent INT DEFAULT NULL
+);
+
+INSERT INTO category VALUES(1,'ELECTRONICS',NULL),(2,'TELEVISIONS',1),(3,'TUBE',2),
+        (4,'LCD',2),(5,'PLASMA',2),(6,'PORTABLE ELECTRONICS',1),(7,'MP3 PLAYERS',6),(8,'FLASH',7),
+        (9,'CD PLAYERS',6),(10,'2 WAY RADIOS',6);
+
+SELECT * FROM category ORDER BY category_id;
++-------------+----------------------+--------+
+| category_id | name                 | parent |
++-------------+----------------------+--------+
+|           1 | ELECTRONICS          |   NULL |
+|           2 | TELEVISIONS          |      1 |
+|           3 | TUBE                 |      2 |
+|           4 | LCD                  |      2 |
+|           5 | PLASMA               |      2 |
+|           6 | PORTABLE ELECTRONICS |      1 |
+|           7 | MP3 PLAYERS          |      6 |
+|           8 | FLASH                |      7 |
+|           9 | CD PLAYERS           |      6 |
+|          10 | 2 WAY RADIOS         |      6 |
++-------------+----------------------+--------+
+10 rows in set (0.00 sec)</pre>
+<p>In the adjacency list model, each item in the table contains a pointer to its parent. The topmost element, in this case <em>electronics</em>, has a NULL value for its parent. The adjacency list model has the advantage of being quite simple, it is easy to see that<em>FLASH</em> is a child of<em>mp3</em> players, which is a child of <em>portable electronics</em>, which is a child of <em>electronics</em>. While the adjacency list model can be dealt with fairly easily in client-side code, working with the model can be more problematic in pure SQL.</p>
+<h4>Retrieving a Full Tree</h4>
+<p>The first common task when dealing with hierarchical data is the display of the entire tree, usually with some form of indentation. The most common way of doing this is in pure SQL is through the use of a self-join:</p>
+<pre class="samplecode">SELECT t1.name AS lev1, t2.name as lev2, t3.name as lev3, t4.name as lev4
+FROM category AS t1
+LEFT JOIN category AS t2 ON t2.parent = t1.category_id
+LEFT JOIN category AS t3 ON t3.parent = t2.category_id
+LEFT JOIN category AS t4 ON t4.parent = t3.category_id
+WHERE t1.name = 'ELECTRONICS';
+
++-------------+----------------------+--------------+-------+
+| lev1        | lev2                 | lev3         | lev4  |
++-------------+----------------------+--------------+-------+
+| ELECTRONICS | TELEVISIONS          | TUBE         | NULL  |
+| ELECTRONICS | TELEVISIONS          | LCD          | NULL  |
+| ELECTRONICS | TELEVISIONS          | PLASMA       | NULL  |
+| ELECTRONICS | PORTABLE ELECTRONICS | MP3 PLAYERS  | FLASH |
+| ELECTRONICS | PORTABLE ELECTRONICS | CD PLAYERS   | NULL  |
+| ELECTRONICS | PORTABLE ELECTRONICS | 2 WAY RADIOS | NULL  |
++-------------+----------------------+--------------+-------+
+6 rows in set (0.00 sec)</pre>
+<h4>Finding all the Leaf Nodes</h4>
+<p>We can find all the leaf nodes in our tree (those with no children) by using a LEFT JOIN query:</p>
+<pre class="samplecode">SELECT t1.name FROM
+category AS t1 LEFT JOIN category as t2
+ON t1.category_id = t2.parent
+WHERE t2.category_id IS NULL;
+
++--------------+
+| name         |
++--------------+
+| TUBE         |
+| LCD          |
+| PLASMA       |
+| FLASH        |
+| CD PLAYERS   |
+| 2 WAY RADIOS |
++--------------+</pre>
+<h4>Retrieving a Single Path</h4>
+<p>The self-join also allows us to see the full path through our hierarchies:</p>
+<pre class="samplecode">SELECT t1.name AS lev1, t2.name as lev2, t3.name as lev3, t4.name as lev4
+FROM category AS t1
+LEFT JOIN category AS t2 ON t2.parent = t1.category_id
+LEFT JOIN category AS t3 ON t3.parent = t2.category_id
+LEFT JOIN category AS t4 ON t4.parent = t3.category_id
+WHERE t1.name = 'ELECTRONICS' AND t4.name = 'FLASH';
+
++-------------+----------------------+-------------+-------+
+| lev1        | lev2                 | lev3        | lev4  |
++-------------+----------------------+-------------+-------+
+| ELECTRONICS | PORTABLE ELECTRONICS | MP3 PLAYERS | FLASH |
++-------------+----------------------+-------------+-------+
+1 row in set (0.01 sec)</pre>
+<p>The main limitation of such an approach is that you need one self-join for every level in the hierarchy, and performance will naturally degrade with each level added as the joining grows in complexity.</p>
+<h4>Limitations of the Adjacency List Model</h4>
+<p>Working with the adjacency list model in pure SQL can be difficult at best. Before being able to see the full path of a category we have to know the level at which it resides. In addition, special care must be taken when deleting nodes because of the potential for orphaning an entire sub-tree in the process (delete the portable electronics category and all of its children are orphaned). Some of these limitations can be addressed through the use of client-side code or stored procedures. With a procedural language we can start at the bottom of the tree and iterate upwards to return the full tree or a single path. We can also use procedural programming to delete nodes without orphaning entire sub-trees by promoting one child element and re-ordering the remaining children to point to the new parent.</p>
+<p>&nbsp;</p>
+<script type="text/javascript">
+							amzn_assoc_placement = "adunit0";
+							amzn_assoc_enable_interest_ads = "true";
+							amzn_assoc_tracking_id = "mikehillyer-20";
+							amzn_assoc_ad_mode = "auto";
+							amzn_assoc_ad_type = "smart";
+							amzn_assoc_marketplace = "amazon";
+							amzn_assoc_region = "US";
+							amzn_assoc_fallback_mode = {"type":"search","value":"joe celko trees"};
+							amzn_assoc_default_category = "All";
+							amzn_assoc_rows = "1";
+							amzn_assoc_search_bar = "false"
+							</script>
+							<script src="http://z-na.amazon-adsystem.com/widgets/onejs?MarketPlace=US"></script>
+<h3>The Nested Set Model</h3>
+<p>What I would like to focus on in this article is a different approach, commonly referred to as the <strong>Nested Set Model</strong>. In the Nested Set Model, we can look at our hierarchy in a new way, not as nodes and lines, but as nested containers. Try picturing our electronics categories this way:</p>
+<p><img class="alignnone size-full wp-image-76" title="nested_categories" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/nested_categories.png" alt="" width="702" height="218"></p>
+<p>Notice how our hierarchy is still maintained, as parent categories envelop their children.We represent this form of hierarchy in a table through the use of left and right values to represent the nesting of our nodes:</p>
+<pre class="samplecode">CREATE TABLE nested_category (
+        category_id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(20) NOT NULL,
+        lft INT NOT NULL,
+        rgt INT NOT NULL
+);
+
+INSERT INTO nested_category VALUES(1,'ELECTRONICS',1,20),(2,'TELEVISIONS',2,9),(3,'TUBE',3,4),
+ (4,'LCD',5,6),(5,'PLASMA',7,8),(6,'PORTABLE ELECTRONICS',10,19),(7,'MP3 PLAYERS',11,14),(8,'FLASH',12,13),
+ (9,'CD PLAYERS',15,16),(10,'2 WAY RADIOS',17,18);
+
+SELECT * FROM nested_category ORDER BY category_id;
+
++-------------+----------------------+-----+-----+
+| category_id | name                 | lft | rgt |
++-------------+----------------------+-----+-----+
+|           1 | ELECTRONICS          |   1 |  20 |
+|           2 | TELEVISIONS          |   2 |   9 |
+|           3 | TUBE                 |   3 |   4 |
+|           4 | LCD                  |   5 |   6 |
+|           5 | PLASMA               |   7 |   8 |
+|           6 | PORTABLE ELECTRONICS |  10 |  19 |
+|           7 | MP3 PLAYERS          |  11 |  14 |
+|           8 | FLASH                |  12 |  13 |
+|           9 | CD PLAYERS           |  15 |  16 |
+|          10 | 2 WAY RADIOS         |  17 |  18 |
++-------------+----------------------+-----+-----+</pre>
+<p>We use <strong>lft</strong> and <strong>rgt</strong> because <em>left</em> and <em>right</em> are reserved words in MySQL, see <a href="http://dev.mysql.com/doc/mysql/en/reserved-words.html" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://dev.mysql.com/doc/mysql/en/reserved-words.html&#39;, &#39;http://dev.mysql.com/doc/mysql/en/reserved-words.html&#39;);">http://dev.mysql.com/doc/mysql/en/reserved-words.html</a> for the full list of reserved words.</p>
+<p>So how do we determine left and right values? We start numbering at the leftmost side of the outer node and continue to the right:</p>
+<p><img class="alignnone size-full wp-image-79" title="nested_numbered" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/nested_numbered.png" alt="" width="642" height="194"></p>
+<p>This design can be applied to a typical tree as well:</p>
+<p><img class="alignnone size-full wp-image-80" title="numbered_tree" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/numbered_tree.png" alt="" width="695" height="362"></p>
+<p>When working with a tree, we work from left to right, one layer at a time, descending to each node’s children before assigning a right-hand number and moving on to the right. This approach is called the <strong>modified preorder tree traversal algorithm</strong>.</p>
+<h4>Retrieving a Full Tree</h4>
+<p>We can retrieve the full tree through the use of a self-join that links parents with nodes on the basis that a node’s <strong>lft</strong> value will always appear between its parent’s <strong>lft</strong> and <strong>rgt</strong> values:</p>
+<pre class="samplecode">SELECT node.name
+FROM nested_category AS node,
+        nested_category AS parent
+WHERE node.lft BETWEEN parent.lft AND parent.rgt
+        AND parent.name = 'ELECTRONICS'
+ORDER BY node.lft;
+
++----------------------+
+| name                 |
++----------------------+
+| ELECTRONICS          |
+| TELEVISIONS          |
+| TUBE                 |
+| LCD                  |
+| PLASMA               |
+| PORTABLE ELECTRONICS |
+| MP3 PLAYERS          |
+| FLASH                |
+| CD PLAYERS           |
+| 2 WAY RADIOS         |
++----------------------+</pre>
+<p>Unlike our previous examples with the adjacency list model, this query will work regardless of the depth of the tree. We do not concern ourselves with the rgt value of the node in our BETWEEN clause because the rgt value will always fall within the same parent as the lft values.</p>
+<h4>Finding all the Leaf Nodes</h4>
+<p>Finding all leaf nodes in the nested set model even simpler than the LEFT JOIN method used in the adjacency list model. If you look at the nested_category table, you may notice that the lft and rgt values for leaf nodes are consecutive numbers. To find the leaf nodes, we look for nodes where rgt = lft + 1:</p>
+<pre class="samplecode">SELECT name
+FROM nested_category
+WHERE rgt = lft + 1;
+
++--------------+
+| name         |
++--------------+
+| TUBE         |
+| LCD          |
+| PLASMA       |
+| FLASH        |
+| CD PLAYERS   |
+| 2 WAY RADIOS |
++--------------+</pre>
+<h4>Retrieving a Single Path</h4>
+<p>With the nested set model, we can retrieve a single path without having multiple self-joins:</p>
+<pre class="samplecode">SELECT parent.name
+FROM nested_category AS node,
+        nested_category AS parent
+WHERE node.lft BETWEEN parent.lft AND parent.rgt
+        AND node.name = 'FLASH'
+ORDER BY parent.lft;
+
++----------------------+
+| name                 |
++----------------------+
+| ELECTRONICS          |
+| PORTABLE ELECTRONICS |
+| MP3 PLAYERS          |
+| FLASH                |
++----------------------+</pre>
+<script type="text/javascript">
+							amzn_assoc_placement = "adunit0";
+							amzn_assoc_enable_interest_ads = "true";
+							amzn_assoc_tracking_id = "mikehillyer-20";
+							amzn_assoc_ad_mode = "auto";
+							amzn_assoc_ad_type = "smart";
+							amzn_assoc_marketplace = "amazon";
+							amzn_assoc_region = "US";
+							amzn_assoc_fallback_mode = {"type":"search","value":"mysql"};
+							amzn_assoc_default_category = "All";
+							amzn_assoc_rows = "1";
+							amzn_assoc_search_bar = "false"
+							</script>
+							<script src="http://z-na.amazon-adsystem.com/widgets/onejs?MarketPlace=US"></script>
+<h4>Finding the Depth of the Nodes</h4>
+<p>We have already looked at how to show the entire tree, but what if we want to also show the depth of each node in the tree, to better identify how each node fits in the hierarchy? This can be done by adding a COUNT function and a GROUP BY clause to our existing query for showing the entire tree:</p>
+<pre class="samplecode">SELECT node.name, (COUNT(parent.name) - 1) AS depth
+FROM nested_category AS node,
+        nested_category AS parent
+WHERE node.lft BETWEEN parent.lft AND parent.rgt
+GROUP BY node.name
+ORDER BY node.lft;
+
++----------------------+-------+
+| name                 | depth |
++----------------------+-------+
+| ELECTRONICS          |     0 |
+| TELEVISIONS          |     1 |
+| TUBE                 |     2 |
+| LCD                  |     2 |
+| PLASMA               |     2 |
+| PORTABLE ELECTRONICS |     1 |
+| MP3 PLAYERS          |     2 |
+| FLASH                |     3 |
+| CD PLAYERS           |     2 |
+| 2 WAY RADIOS         |     2 |
++----------------------+-------+</pre>
+<p>We can use the depth value to indent our category names with the CONCAT and REPEAT string functions:</p>
+<pre class="samplecode">SELECT CONCAT( REPEAT(' ', COUNT(parent.name) - 1), node.name) AS name
+FROM nested_category AS node,
+        nested_category AS parent
+WHERE node.lft BETWEEN parent.lft AND parent.rgt
+GROUP BY node.name
+ORDER BY node.lft;
+
++-----------------------+
+| name                  |
++-----------------------+
+| ELECTRONICS           |
+|  TELEVISIONS          |
+|   TUBE                |
+|   LCD                 |
+|   PLASMA              |
+|  PORTABLE ELECTRONICS |
+|   MP3 PLAYERS         |
+|    FLASH              |
+|   CD PLAYERS          |
+|   2 WAY RADIOS        |
++-----------------------+</pre>
+<p>Of course, in a client-side application you will be more likely to use the depth value directly to display your hierarchy. Web developers could loop through the tree, adding &lt;li&gt;&lt;/li&gt; and &lt;ul&gt;&lt;/ul&gt; tags as the depth number increases and decreases.</p>
+<h4>Depth of a Sub-Tree</h4>
+<p>When we need depth information for a sub-tree, we cannot limit either the node or parent tables in our self-join because it will corrupt our results. Instead, we add a third self-join, along with a sub-query to determine the depth that will be the new starting point for our sub-tree:</p>
+<pre class="samplecode">SELECT node.name, (COUNT(parent.name) - (sub_tree.depth + 1)) AS depth
+FROM nested_category AS node,
+        nested_category AS parent,
+        nested_category AS sub_parent,
+        (
+                SELECT node.name, (COUNT(parent.name) - 1) AS depth
+                FROM nested_category AS node,
+                nested_category AS parent
+                WHERE node.lft BETWEEN parent.lft AND parent.rgt
+                AND node.name = 'PORTABLE ELECTRONICS'
+                GROUP BY node.name
+                ORDER BY node.lft
+        )AS sub_tree
+WHERE node.lft BETWEEN parent.lft AND parent.rgt
+        AND node.lft BETWEEN sub_parent.lft AND sub_parent.rgt
+        AND sub_parent.name = sub_tree.name
+GROUP BY node.name
+ORDER BY node.lft;
+
++----------------------+-------+
+| name                 | depth |
++----------------------+-------+
+| PORTABLE ELECTRONICS |     0 |
+| MP3 PLAYERS          |     1 |
+| FLASH                |     2 |
+| CD PLAYERS           |     1 |
+| 2 WAY RADIOS         |     1 |
++----------------------+-------+</pre>
+<p>This function can be used with any node name, including the root node. The depth values are always relative to the named node.</p>
+<p><!--adsense--></p>
+<h4>Find the Immediate Subordinates of a Node</h4>
+<p>Imagine you are showing a category of electronics products on a retailer web site. When a user clicks on a category, you would want to show the products of that category, as well as list its immediate sub-categories, but not the entire tree of categories beneath it. For this, we need to show the node and its immediate sub-nodes, but no further down the tree. For example, when showing the PORTABLE ELECTRONICS category, we will want to show MP3 PLAYERS, CD PLAYERS, and 2 WAY RADIOS, but not FLASH.</p>
+<p>This can be easily accomplished by adding a HAVING clause to our previous query:</p>
+<pre class="samplecode">SELECT node.name, (COUNT(parent.name) - (sub_tree.depth + 1)) AS depth
+FROM nested_category AS node,
+        nested_category AS parent,
+        nested_category AS sub_parent,
+        (
+                SELECT node.name, (COUNT(parent.name) - 1) AS depth
+                FROM nested_category AS node,
+                        nested_category AS parent
+                WHERE node.lft BETWEEN parent.lft AND parent.rgt
+                        AND node.name = 'PORTABLE ELECTRONICS'
+                GROUP BY node.name
+                ORDER BY node.lft
+        )AS sub_tree
+WHERE node.lft BETWEEN parent.lft AND parent.rgt
+        AND node.lft BETWEEN sub_parent.lft AND sub_parent.rgt
+        AND sub_parent.name = sub_tree.name
+GROUP BY node.name
+HAVING depth &lt;= 1
+ORDER BY node.lft;
+
++----------------------+-------+
+| name                 | depth |
++----------------------+-------+
+| PORTABLE ELECTRONICS |     0 |
+| MP3 PLAYERS          |     1 |
+| CD PLAYERS           |     1 |
+| 2 WAY RADIOS         |     1 |
++----------------------+-------+</pre>
+<p>If you do not wish to show the parent node, change the <strong>HAVING depth &lt;= 1</strong> line to <strong>HAVING depth = 1</strong>.</p>
+<h4>Aggregate Functions in a Nested Set</h4>
+<p>Let’s add a table of products that we can use to demonstrate aggregate functions with:</p>
+<pre class="samplecode">CREATE TABLE product
+(
+        product_id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(40),
+        category_id INT NOT NULL
+);
+
+INSERT INTO product(name, category_id) VALUES('20" TV',3),('36" TV',3),
+('Super-LCD 42"',4),('Ultra-Plasma 62"',5),('Value Plasma 38"',5),
+('Power-MP3 5gb',7),('Super-Player 1gb',8),('Porta CD',9),('CD To go!',9),
+('Family Talk 360',10);
+
+SELECT * FROM product;
+
++------------+-------------------+-------------+
+| product_id | name              | category_id |
++------------+-------------------+-------------+
+|          1 | 20" TV            |           3 |
+|          2 | 36" TV            |           3 |
+|          3 | Super-LCD 42"     |           4 |
+|          4 | Ultra-Plasma 62"  |           5 |
+|          5 | Value Plasma 38"  |           5 |
+|          6 | Power-MP3 128mb   |           7 |
+|          7 | Super-Shuffle 1gb |           8 |
+|          8 | Porta CD          |           9 |
+|          9 | CD To go!         |           9 |
+|         10 | Family Talk 360   |          10 |
++------------+-------------------+-------------+</pre>
+<p>Now let’s produce a query that can retrieve our category tree, along with a product count for each category:</p>
+<pre class="samplecode">SELECT parent.name, COUNT(product.name)
+FROM nested_category AS node ,
+        nested_category AS parent,
+        product
+WHERE node.lft BETWEEN parent.lft AND parent.rgt
+        AND node.category_id = product.category_id
+GROUP BY parent.name
+ORDER BY node.lft;
+
++----------------------+---------------------+
+| name                 | COUNT(product.name) |
++----------------------+---------------------+
+| ELECTRONICS          |                  10 |
+| TELEVISIONS          |                   5 |
+| TUBE                 |                   2 |
+| LCD                  |                   1 |
+| PLASMA               |                   2 |
+| PORTABLE ELECTRONICS |                   5 |
+| MP3 PLAYERS          |                   2 |
+| FLASH                |                   1 |
+| CD PLAYERS           |                   2 |
+| 2 WAY RADIOS         |                   1 |
++----------------------+---------------------+</pre>
+<p>This is our typical whole tree query with a COUNT and GROUP BY added, along with a reference to the product table and a join between the node and product table in the WHERE clause. As you can see, there is a count for each category and the count of subcategories is reflected in the parent categories.</p>
+<h4>Adding New Nodes</h4>
+<p>Now that we have learned how to query our tree, we should take a look at how to update our tree by adding a new node. Let’s look at our nested set diagram again:</p>
+<p><img class="alignnone size-full wp-image-79" title="nested_numbered" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/nested_numbered.png" alt="" width="642" height="194"></p>
+<p>If we wanted to add a new node between the TELEVISIONS and PORTABLE ELECTRONICS nodes, the new node would have lft and rgt values of 10 and 11, and all nodes to its right would have their lft and rgt values increased by two. We would then add the new node with the appropriate lft and rgt values. While this can be done with a stored procedure in MySQL 5, I will assume for the moment that most readers are using 4.1, as it is the latest stable version, and I will isolate my queries with a LOCK TABLES statement instead:</p>
+<pre class="samplecode">LOCK TABLE nested_category WRITE;
+
+SELECT @myRight := rgt FROM nested_category
+WHERE name = 'TELEVISIONS';
+
+UPDATE nested_category SET rgt = rgt + 2 WHERE rgt &gt; @myRight;
+UPDATE nested_category SET lft = lft + 2 WHERE lft &gt; @myRight;
+
+INSERT INTO nested_category(name, lft, rgt) VALUES('GAME CONSOLES', @myRight + 1, @myRight + 2);
+
+UNLOCK TABLES;</pre>
+<p>We can then check our nesting with our indented tree query:</p>
+<pre class="samplecode">SELECT CONCAT( REPEAT( ' ', (COUNT(parent.name) - 1) ), node.name) AS name
+FROM nested_category AS node,
+        nested_category AS parent
+WHERE node.lft BETWEEN parent.lft AND parent.rgt
+GROUP BY node.name
+ORDER BY node.lft;
+
++-----------------------+
+| name                  |
++-----------------------+
+| ELECTRONICS           |
+|  TELEVISIONS          |
+|   TUBE                |
+|   LCD                 |
+|   PLASMA              |
+|  GAME CONSOLES        |
+|  PORTABLE ELECTRONICS |
+|   MP3 PLAYERS         |
+|    FLASH              |
+|   CD PLAYERS          |
+|   2 WAY RADIOS        |
++-----------------------+</pre>
+<p>If we instead want to add a node as a child of a node that has no existing children, we need to modify our procedure slightly. Let’s add a new FRS node below the 2 WAY RADIOS node:</p>
+<pre class="samplecode">LOCK TABLE nested_category WRITE;
+
+SELECT @myLeft := lft FROM nested_category
+
+WHERE name = '2 WAY RADIOS';
+
+UPDATE nested_category SET rgt = rgt + 2 WHERE rgt &gt; @myLeft;
+UPDATE nested_category SET lft = lft + 2 WHERE lft &gt; @myLeft;
+
+INSERT INTO nested_category(name, lft, rgt) VALUES('FRS', @myLeft + 1, @myLeft + 2);
+
+UNLOCK TABLES;</pre>
+<p>In this example we expand everything to the right of the left-hand number of our proud new parent node, then place the node to the right of the left-hand value. As you can see, our new node is now properly nested:</p>
+<pre class="samplecode">SELECT CONCAT( REPEAT( ' ', (COUNT(parent.name) - 1) ), node.name) AS name
+FROM nested_category AS node,
+        nested_category AS parent
+WHERE node.lft BETWEEN parent.lft AND parent.rgt
+GROUP BY node.name
+ORDER BY node.lft;
+
++-----------------------+
+| name                  |
++-----------------------+
+| ELECTRONICS           |
+|  TELEVISIONS          |
+|   TUBE                |
+|   LCD                 |
+|   PLASMA              |
+|  GAME CONSOLES        |
+|  PORTABLE ELECTRONICS |
+|   MP3 PLAYERS         |
+|    FLASH              |
+|   CD PLAYERS          |
+|   2 WAY RADIOS        |
+|    FRS                |
++-----------------------+</pre>
+<h4>Deleting Nodes</h4>
+<p>The last basic task involved in working with nested sets is the removal of nodes. The course of action you take when deleting a node depends on the node’s position in the hierarchy; deleting leaf nodes is easier than deleting nodes with children because we have to handle the orphaned nodes.</p>
+<p>When deleting a leaf node, the process if just the opposite of adding a new node, we delete the node and its width from every node to its right:</p>
+<pre class="samplecode">LOCK TABLE nested_category WRITE;
+
+SELECT @myLeft := lft, @myRight := rgt, @myWidth := rgt - lft + 1
+FROM nested_category
+WHERE name = 'GAME CONSOLES';
+
+DELETE FROM nested_category WHERE lft BETWEEN @myLeft AND @myRight;
+
+UPDATE nested_category SET rgt = rgt - @myWidth WHERE rgt &gt; @myRight;
+UPDATE nested_category SET lft = lft - @myWidth WHERE lft &gt; @myRight;
+
+UNLOCK TABLES;</pre>
+<p>And once again, we execute our indented tree query to confirm that our node has been deleted without corrupting the hierarchy:</p>
+<pre class="samplecode">SELECT CONCAT( REPEAT( ' ', (COUNT(parent.name) - 1) ), node.name) AS name
+FROM nested_category AS node,
+        nested_category AS parent
+WHERE node.lft BETWEEN parent.lft AND parent.rgt
+GROUP BY node.name
+ORDER BY node.lft;
+
++-----------------------+
+| name                  |
++-----------------------+
+| ELECTRONICS           |
+|  TELEVISIONS          |
+|   TUBE                |
+|   LCD                 |
+|   PLASMA              |
+|  PORTABLE ELECTRONICS |
+|   MP3 PLAYERS         |
+|    FLASH              |
+|   CD PLAYERS          |
+|   2 WAY RADIOS        |
+|    FRS                |
++-----------------------+</pre>
+<p>This approach works equally well to delete a node and all its children:</p>
+<pre class="samplecode">LOCK TABLE nested_category WRITE;
+
+SELECT @myLeft := lft, @myRight := rgt, @myWidth := rgt - lft + 1
+FROM nested_category
+WHERE name = 'MP3 PLAYERS';
+
+DELETE FROM nested_category WHERE lft BETWEEN @myLeft AND @myRight;
+
+UPDATE nested_category SET rgt = rgt - @myWidth WHERE rgt &gt; @myRight;
+UPDATE nested_category SET lft = lft - @myWidth WHERE lft &gt; @myRight;
+
+UNLOCK TABLES;</pre>
+<p>And once again, we query to see that we have successfully deleted an entire sub-tree:</p>
+<pre class="samplecode">SELECT CONCAT( REPEAT( ' ', (COUNT(parent.name) - 1) ), node.name) AS name
+FROM nested_category AS node,
+        nested_category AS parent
+WHERE node.lft BETWEEN parent.lft AND parent.rgt
+GROUP BY node.name
+ORDER BY node.lft;
+
++-----------------------+
+| name                  |
++-----------------------+
+| ELECTRONICS           |
+|  TELEVISIONS          |
+|   TUBE                |
+|   LCD                 |
+|   PLASMA              |
+|  PORTABLE ELECTRONICS |
+|   CD PLAYERS          |
+|   2 WAY RADIOS        |
+|    FRS                |
++-----------------------+</pre>
+<p>The other scenario we have to deal with is the deletion of a parent node but not the children. In some cases you may wish to just change the name to a placeholder until a replacement is presented, such as when a supervisor is fired. In other cases, the child nodes should all be moved up to the level of the deleted parent:</p>
+<pre class="samplecode">LOCK TABLE nested_category WRITE;
+
+SELECT @myLeft := lft, @myRight := rgt, @myWidth := rgt - lft + 1
+FROM nested_category
+WHERE name = 'PORTABLE ELECTRONICS';
+
+DELETE FROM nested_category WHERE lft = @myLeft;
+
+UPDATE nested_category SET rgt = rgt - 1, lft = lft - 1 WHERE lft BETWEEN @myLeft AND @myRight;
+UPDATE nested_category SET rgt = rgt - 2 WHERE rgt &gt; @myRight;
+UPDATE nested_category SET lft = lft - 2 WHERE lft &gt; @myRight;
+
+UNLOCK TABLES;</pre>
+<p>In this case we subtract two from all elements to the right of the node (since without children it would have a width of two), and one from the nodes that are its children (to close the gap created by the loss of the parent’s left value). Once again, we can confirm our elements have been promoted:</p>
+<pre class="samplecode">SELECT CONCAT( REPEAT( ' ', (COUNT(parent.name) - 1) ), node.name) AS name
+FROM nested_category AS node,
+        nested_category AS parent
+WHERE node.lft BETWEEN parent.lft AND parent.rgt
+GROUP BY node.name
+ORDER BY node.lft;
+
++---------------+
+| name          |
++---------------+
+| ELECTRONICS   |
+|  TELEVISIONS  |
+|   TUBE        |
+|   LCD         |
+|   PLASMA      |
+|  CD PLAYERS   |
+|  2 WAY RADIOS |
+|   FRS         |
++---------------+</pre>
+<p>Other scenarios when deleting nodes would include promoting one of the children to the parent position and moving the child nodes under a sibling of the parent node, but for the sake of space these scenarios will not be covered in this article.</p>
+<h3>Final Thoughts</h3>
+<p>While I hope the information within this article will be of use to you, the concept of nested sets in SQL has been around for over a decade, and there is a lot of additional information available in books and on the Internet. In my opinion the most comprehensive source of information on managing hierarchical information is a book called <a href="http://www.openwin.org/mike/books/index.php/trees-and-hierarchies-in-sql" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.openwin.org/mike/books/index.php/trees-and-hierarchies-in-sql&#39;, &#39;Joe Celko’s Trees and Hierarchies in SQL for Smarties&#39;);">Joe Celko’s Trees and Hierarchies in SQL for Smarties</a>, written by a very respected author in the field of advanced SQL, Joe Celko. Joe Celko is often credited with the nested sets model and is by far the most prolific author on the subject. I have found Celko’s book to be an invaluable resource in my own studies and highly recommend it. The book covers advanced topics which I have not covered in this article, and provides additional methods for managing hierarchical data in addition to the Adjacency List and Nested Set models.</p>
+<p>In the References / Resources section that follows I have listed some web resources that may be of use in your research of managing hierarchal data, including a pair of PHP related resources that include pre-built PHP libraries for handling nested sets in MySQL. Those of you who currently use the adjacency list model and would like to experiment with the nested set model will find sample code for converting between the two in the <a href="http://www.sitepoint.com/article/hierarchical-data-database" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.sitepoint.com/article/hierarchical-data-database&#39;, &#39;Storing Hierarchical Data in a Database&#39;);">Storing Hierarchical Data in a Database</a> resource listed below.</p>
+<script type="text/javascript">
+							amzn_assoc_placement = "adunit0";
+							amzn_assoc_enable_interest_ads = "true";
+							amzn_assoc_tracking_id = "mikehillyer-20";
+							amzn_assoc_ad_mode = "auto";
+							amzn_assoc_ad_type = "smart";
+							amzn_assoc_marketplace = "amazon";
+							amzn_assoc_region = "US";
+							amzn_assoc_fallback_mode = {"type":"search","value":"database"};
+							amzn_assoc_default_category = "All";
+							amzn_assoc_rows = "1";
+							amzn_assoc_search_bar = "false"
+							</script>
+							<script src="http://z-na.amazon-adsystem.com/widgets/onejs?MarketPlace=US"></script>
+<h3>References / Resources</h3>
+<ul>
+<li><a href="http://www.openwin.org/mike/books/index.php/trees-and-hierarchies-in-sql" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.openwin.org/mike/books/index.php/trees-and-hierarchies-in-sql&#39;, &#39;Joe Celko’s Trees and Hierarchies in SQL for Smarties&#39;);">Joe Celko’s Trees and Hierarchies in SQL for Smarties</a> – ISBN 1-55860-920-2</li>
+<li><a href="http://www.sitepoint.com/article/hierarchical-data-database" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.sitepoint.com/article/hierarchical-data-database&#39;, &#39;Storing Hierarchical Data in a Database&#39;);">Storing Hierarchical Data in a Database</a></li>
+<li><a href="http://www.dbmsmag.com/9603d06.html" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.dbmsmag.com/9603d06.html&#39;, &#39;A Look at SQL Trees&#39;);">A Look at SQL Trees</a></li>
+<li><a href="http://www.dbmsmag.com/9604d06.html" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.dbmsmag.com/9604d06.html&#39;, &#39;SQL Lessons&#39;);">SQL Lessons</a></li>
+<li><a href="http://www.dbmsmag.com/9605d06.html" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.dbmsmag.com/9605d06.html&#39;, &#39;Nontraditional Databases&#39;);">Nontraditional Databases</a></li>
+<li><a href="http://www.intelligententerprise.com/001020/celko.jhtml?_requestid=123193" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.intelligententerprise.com/001020/celko.jhtml?_requestid=123193&#39;, &#39;Trees in SQL&#39;);">Trees in SQL</a></li>
+<li><a href="http://searchdatabase.techtarget.com/tip/1,289483,sid13_gci537290,00.html" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://searchdatabase.techtarget.com/tip/1,289483,sid13_gci537290,00.html&#39;, &#39;Trees in SQL (2)&#39;);">Trees in SQL (2)</a></li>
+<li><a href="http://searchdatabase.techtarget.com/tip/1,289483,sid13_gci801943,00.html" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://searchdatabase.techtarget.com/tip/1,289483,sid13_gci801943,00.html&#39;, &#39;Converting an adjacency list model to a nested set model&#39;);">Converting an adjacency list model to a nested set model</a></li>
+<li><a href="http://www.klempert.de/php/nested_sets_demo" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://www.klempert.de/php/nested_sets_demo&#39;, &#39;Nested Sets in PHP Demonstration (German)&#39;);">Nested Sets in PHP Demonstration (German)</a></li>
+<li><a href="http://dev.e-taller.net/dbtree/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-article&#39;, &#39;http://dev.e-taller.net/dbtree/&#39;, &#39;A Nested Set Library in PHP&#39;);">A Nested Set Library in PHP</a></li>
+</ul>
+	</div><!-- .entry-content -->
+
+	
+</article><!-- #post-## -->
+
+<div id="comments" class="comments-area">
+
+			<h2 class="comments-title">
+			75 thoughts on “Managing Hierarchical Data in MySQL”		</h2>
+
+		
+		<ol class="comment-list">
+					<li id="comment-4024" class="comment even thread-even depth-1">
+			<article id="div-comment-4024" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/cc398a75e6d07a598886321a3c88160e" srcset="http://0.gravatar.com/avatar/cc398a75e6d07a598886321a3c88160e?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Doug Meyer</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-4024">
+							<time datetime="2012-04-24T04:39:49+00:00">
+								2012/04/24 at 4:39 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Very nice and concise article, Mike. I bought Joe Celko’s book that you referenced and have skimmed, then read it. Your article helps me to understand the Nested Set model. I’m an old dog who has been writing adjacency list hierarchies since the early nineties. I always thought there could be ‘better way’, and this is certainly it. Thanks for taking the time to explain it all, Mike.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=4024#respond" onclick="return addComment.moveForm( &quot;div-comment-4024&quot;, &quot;4024&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Doug Meyer">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-4102" class="comment odd alt thread-odd thread-alt depth-1 parent">
+			<article id="div-comment-4102" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/c2c258ef00914e48ee8f1c307f3610b0" srcset="http://0.gravatar.com/avatar/c2c258ef00914e48ee8f1c307f3610b0?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Chris M</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-4102">
+							<time datetime="2012-04-27T09:44:13+00:00">
+								2012/04/27 at 9:44 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Could this be made to work for hierarchies where a child can have more than one parent?</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=4102#respond" onclick="return addComment.moveForm( &quot;div-comment-4102&quot;, &quot;4102&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Chris M">Reply</a></div>			</article><!-- .comment-body -->
+<ol class="children">
+		<li id="comment-4103" class="comment byuser comment-author-admin bypostauthor even depth-2">
+			<article id="div-comment-4103" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/34d489f942088bdfbb6e8469e8000c2e" srcset="http://0.gravatar.com/avatar/34d489f942088bdfbb6e8469e8000c2e?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn"><a href="http://mikehillyer.com/about-me/" rel="external nofollow" class="url">Mike Hillyer</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-4103">
+							<time datetime="2012-04-27T09:47:31+00:00">
+								2012/04/27 at 9:47 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>At that point you’re dealing with a graph instead of a hierarchy. If you’re using MySQL you may want to look at the following storage engine by an associate of mine: <a href="http://openquery.com/products/graph-engine" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-comment&#39;, &#39;http://openquery.com/products/graph-engine&#39;, &#39;http://openquery.com/products/graph-engine&#39;);" rel="nofollow">http://openquery.com/products/graph-engine</a></p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=4103#respond" onclick="return addComment.moveForm( &quot;div-comment-4103&quot;, &quot;4103&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Mike Hillyer">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+</ol><!-- .children -->
+</li><!-- #comment-## -->
+		<li id="comment-4489" class="comment odd alt thread-even depth-1">
+			<article id="div-comment-4489" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/f59cdee3c5995779122b68258980e2b1" srcset="http://0.gravatar.com/avatar/f59cdee3c5995779122b68258980e2b1?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn"><a href="http://www.shareyourride.net/" rel="external nofollow" class="url">Daniel</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-4489">
+							<time datetime="2012-05-20T15:17:08+00:00">
+								2012/05/20 at 3:17 PM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Hi Mike;</p>
+<p>thanks for your well described tutorial. I noticed you do a “GROUP BY node.name” in quite a few example queries here. This is very bad practice and will return some unexpected results as soon as you have a few hundred records where node.name is not unique anymore.<br>
+You should group your rows by ID instead.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=4489#respond" onclick="return addComment.moveForm( &quot;div-comment-4489&quot;, &quot;4489&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Daniel">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-4661" class="comment even thread-odd thread-alt depth-1">
+			<article id="div-comment-4661" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/0386c3bd9a6a40732c26a0552f12e20f" srcset="http://0.gravatar.com/avatar/0386c3bd9a6a40732c26a0552f12e20f?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Mukesh</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-4661">
+							<time datetime="2012-06-01T23:42:05+00:00">
+								2012/06/01 at 11:42 PM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>I am a beginner php programmer and want to develop a mlm web application in php &amp; mysql,but I have no idea about it.<br>
+My mlm webapplication’s requirement is-<br>
+1.It work on binary tree in which every node only have left and right child.<br>
+2.In this we can add node as our wish which be add in left or right.<br>
+So how can implement it?</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=4661#respond" onclick="return addComment.moveForm( &quot;div-comment-4661&quot;, &quot;4661&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Mukesh">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-4700" class="comment odd alt thread-even depth-1">
+			<article id="div-comment-4700" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/d2803c47199f315f8ef8dcc408652025" srcset="http://1.gravatar.com/avatar/d2803c47199f315f8ef8dcc408652025?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Ramakant</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-4700">
+							<time datetime="2012-06-05T05:26:46+00:00">
+								2012/06/05 at 5:26 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Very useful link to see example of self joins<br>
+Here you can select user and parent from same table<br>
+<a href="http://www.devshed.com/c/a/MySQL/MySQL-Table-Joins/4/" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-comment&#39;, &#39;http://www.devshed.com/c/a/MySQL/MySQL-Table-Joins/4/&#39;, &#39;http://www.devshed.com/c/a/MySQL/MySQL-Table-Joins/4/&#39;);" rel="nofollow">http://www.devshed.com/c/a/MySQL/MySQL-Table-Joins/4/</a></p>
+<p>what i use is here:</p>
+<p>select distinct e.employeeid,<b>e.givenname</b>,e.contact_no,<b>b.givenname as parent_name</b>,e.status from employee as e ,employee as b, agent_details as a,user_group as u<br>
+   where a.agent_id = e.employeeid AND a.parent_id=b.employeeid AND e.employeeid=u.employeeid AND u.groupid=10  GROUP BY e.employeeid ORDER BY e.givenname</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=4700#respond" onclick="return addComment.moveForm( &quot;div-comment-4700&quot;, &quot;4700&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Ramakant">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-4718" class="comment even thread-odd thread-alt depth-1 parent">
+			<article id="div-comment-4718" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/1aa7b0fb9f80d2a392920bc26cb0d2a7" srcset="http://1.gravatar.com/avatar/1aa7b0fb9f80d2a392920bc26cb0d2a7?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Bartek</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-4718">
+							<time datetime="2012-06-07T00:03:34+00:00">
+								2012/06/07 at 12:03 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>I use this data model for years. I first found it on dev.mysql.com few years back. I have structures many levels deep and data with hundreds of rows – It never fails, it’s really fast. The ability to cut part of the structure with one question is simply awesome! It is part of my framework now with full credit to Mike of course <img draggable="false" class="emoji" alt="🙂" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/1f642.png"> Thank you so much for sharing.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=4718#respond" onclick="return addComment.moveForm( &quot;div-comment-4718&quot;, &quot;4718&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Bartek">Reply</a></div>			</article><!-- .comment-body -->
+<ol class="children">
+		<li id="comment-15893" class="comment odd alt depth-2">
+			<article id="div-comment-15893" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/b86ea4a6ddf74fb4774225350785b68f" srcset="http://2.gravatar.com/avatar/b86ea4a6ddf74fb4774225350785b68f?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">ashwini</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-15893">
+							<time datetime="2013-02-06T02:41:53+00:00">
+								2013/02/06 at 2:41 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>How do you manage inserts? I beleive you would have a programmatic way of doing inserts. Most online resources on this subject start from “pen-paper”, as in, number nodes/elements by hand and then fire individual inserts. Is there a resource that takes in a tree/xml and generates the numbering?</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=15893#respond" onclick="return addComment.moveForm( &quot;div-comment-15893&quot;, &quot;15893&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to ashwini">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+</ol><!-- .children -->
+</li><!-- #comment-## -->
+		<li id="comment-4843" class="comment even thread-even depth-1">
+			<article id="div-comment-4843" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/c1773d696edc2c2f70f103990fa6b33b" srcset="http://0.gravatar.com/avatar/c1773d696edc2c2f70f103990fa6b33b?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Leo</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-4843">
+							<time datetime="2012-06-14T19:46:41+00:00">
+								2012/06/14 at 7:46 PM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>I like your code for “Retrieving a Single Path” in a “Nested Set Model”.</p>
+<p>However, how would you retrieve a single path if there were multiple nodes with the same name?  For example, what if Flash was listed both under MP3 Players and under Movie Characters, and you wanted to retrieve the path that led to the movie character only?</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=4843#respond" onclick="return addComment.moveForm( &quot;div-comment-4843&quot;, &quot;4843&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Leo">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-4844" class="comment odd alt thread-odd thread-alt depth-1">
+			<article id="div-comment-4844" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/ed6785b80674509afc8e9776caaebc27" srcset="http://2.gravatar.com/avatar/ed6785b80674509afc8e9776caaebc27?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Clay Stuckey</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-4844">
+							<time datetime="2012-06-14T21:15:37+00:00">
+								2012/06/14 at 9:15 PM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Your adjacency model is super close to what I need. Is it possible to perform the “retrieve a full tree” query and have the number of “children” be dynamic. Your example will work great if you have =1 levels.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=4844#respond" onclick="return addComment.moveForm( &quot;div-comment-4844&quot;, &quot;4844&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Clay Stuckey">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-5141" class="comment even thread-even depth-1">
+			<article id="div-comment-5141" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/5264f6e429237ea25e0b2ca4012decec" srcset="http://2.gravatar.com/avatar/5264f6e429237ea25e0b2ca4012decec?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Martin Andreev</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-5141">
+							<time datetime="2012-07-04T13:33:19+00:00">
+								2012/07/04 at 1:33 PM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Awesome tutorial. I am really impressed. Its something that i didn’t know and i’ll gladly use it <img draggable="false" class="emoji" alt="🙂" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/1f642.png"> Thank your for taking you time to write it.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=5141#respond" onclick="return addComment.moveForm( &quot;div-comment-5141&quot;, &quot;5141&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Martin Andreev">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-5206" class="comment odd alt thread-odd thread-alt depth-1">
+			<article id="div-comment-5206" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/66eeaa807244113ebe4ee8e17fa47fc5" srcset="http://0.gravatar.com/avatar/66eeaa807244113ebe4ee8e17fa47fc5?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Alejandro Palacios</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-5206">
+							<time datetime="2012-07-10T22:38:31+00:00">
+								2012/07/10 at 10:38 PM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Very nice explanation of the adjacent list and nested set models,</p>
+<p>thanks a lot !</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=5206#respond" onclick="return addComment.moveForm( &quot;div-comment-5206&quot;, &quot;5206&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Alejandro Palacios">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-5386" class="comment even thread-even depth-1">
+			<article id="div-comment-5386" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/b1bc42ed3cb40c3c74a8fbd2eafffa8b" srcset="http://2.gravatar.com/avatar/b1bc42ed3cb40c3c74a8fbd2eafffa8b?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn"><a href="http://selfreading/" rel="external nofollow" class="url">anand</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-5386">
+							<time datetime="2012-07-25T08:01:45+00:00">
+								2012/07/25 at 8:01 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>really very help full for developing my project<br>
+super like </p>
+<p>Thanks</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=5386#respond" onclick="return addComment.moveForm( &quot;div-comment-5386&quot;, &quot;5386&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to anand">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-5452" class="comment odd alt thread-odd thread-alt depth-1">
+			<article id="div-comment-5452" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/ab1cebcdf2a348f73079b22385d17071" srcset="http://1.gravatar.com/avatar/ab1cebcdf2a348f73079b22385d17071?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Chris</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-5452">
+							<time datetime="2012-07-30T00:54:23+00:00">
+								2012/07/30 at 12:54 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>In your demonstration of inserting a row between ‘Televisions’ and ‘Portable Electronics’, what if the table was extremely large, perhaps hundreds of thousands of rows, and the left insert point were very close to zero? Unlike an adjency list, such an insert into a nested set will trigger massive updates.</p>
+<p>It seems to me that a good extension to the model might be to reserve space, perhaps depth dependent, so insertions trigger less expansive updates.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=5452#respond" onclick="return addComment.moveForm( &quot;div-comment-5452&quot;, &quot;5452&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Chris">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-5506" class="comment even thread-even depth-1">
+			<article id="div-comment-5506" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/8ae7bce2d58740d9e5173e9cbdea0c4f" srcset="http://2.gravatar.com/avatar/8ae7bce2d58740d9e5173e9cbdea0c4f?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn"><a href="http://blog.mindplay.dk/" rel="external nofollow" class="url">Rasmus Schultz</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-5506">
+							<time datetime="2012-08-02T11:26:47+00:00">
+								2012/08/02 at 11:26 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Very useful article – I had to do some digging, as this article recently vanished from mysql.com for some reason. The formatting of this article on your blog is somewhat broken – it would be nice if you could clean this up so it’s legible again. Thanks!</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=5506#respond" onclick="return addComment.moveForm( &quot;div-comment-5506&quot;, &quot;5506&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Rasmus Schultz">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-5536" class="pingback odd alt thread-odd thread-alt depth-1">
+			<div class="comment-body">
+				Pingback: <a href="http://fatal-errors.com/mysql-structure-of-website-with-parent-and-child-topics-5/174401" rel="external nofollow" class="url">MySQL structure of website with parent and child topics</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-5555" class="comment even thread-even depth-1">
+			<article id="div-comment-5555" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/afe5b8eb96d34f074e7b222d217e4747" srcset="http://1.gravatar.com/avatar/afe5b8eb96d34f074e7b222d217e4747?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Andy Taylor</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-5555">
+							<time datetime="2012-08-05T15:52:18+00:00">
+								2012/08/05 at 3:52 PM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Firstly, huge thanks for a great &amp; clear explanation.<br>
+I implemented some of your code examples against a database I’d generated of a hard disk directory structure and got some strange results.<br>
+In the examples you’ve given, you’re using ‘GROUP BY node.name’. However, if I understand things correctly, this will only work if ‘node.name’ is unique for all entries.<br>
+If, as I discovered, you have multiple entries with the same ‘node.name’ then doing ‘GROUP BY node.category_id’ seems to work.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=5555#respond" onclick="return addComment.moveForm( &quot;div-comment-5555&quot;, &quot;5555&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Andy Taylor">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-5588" class="pingback odd alt thread-odd thread-alt depth-1">
+			<div class="comment-body">
+				Pingback: <a href="http://pradipchitrakar.com.np/programming/threaded-comment-system/" rel="external nofollow" class="url">How to create threaded comment system using PHP, MySQL, jQuery and Ajax</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-5628" class="comment even thread-even depth-1">
+			<article id="div-comment-5628" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/53550f03ef4c5147d9fb9500d0efa8ba" srcset="http://2.gravatar.com/avatar/53550f03ef4c5147d9fb9500d0efa8ba?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Marcus Ahle</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-5628">
+							<time datetime="2012-08-10T09:39:18+00:00">
+								2012/08/10 at 9:39 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>How big of strain does this place on the Db when the amount of categories gets large?  For example, say you have 3 main categories, Electrnics, Clothing, and groceries.  Say each of those has 200 total nodes underneath each. When adding a new node to the very beginning seems like it could place a big strain in terms of having to update the lft and rgt of hundreds of nodes. At what point does size hinder performance?</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=5628#respond" onclick="return addComment.moveForm( &quot;div-comment-5628&quot;, &quot;5628&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Marcus Ahle">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-5787" class="pingback odd alt thread-odd thread-alt depth-1">
+			<div class="comment-body">
+				Pingback: <a href="http://alinnica.com/trees-and-hierarchical-data-in-mysql-using-the-nested-sets-model/" rel="external nofollow" class="url">Trees and Hierarchical Data in mySQL using the nested sets model « Alin's DevBlog</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-6116" class="comment even thread-even depth-1">
+			<article id="div-comment-6116" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/82ce72e43f87571749f072683a5360b1" srcset="http://2.gravatar.com/avatar/82ce72e43f87571749f072683a5360b1?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Zeeshan</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-6116">
+							<time datetime="2012-09-15T04:54:52+00:00">
+								2012/09/15 at 4:54 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>+1 to you Mike, I had the same table schema but implemented the retrieval stuff in PHP code which was a bit slow (I used it for categories on a retail store portal). I was looking for an idea about hierarchical retrieval via SQL queries, and you gave me a great food for thought.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=6116#respond" onclick="return addComment.moveForm( &quot;div-comment-6116&quot;, &quot;6116&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Zeeshan">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-6294" class="comment odd alt thread-odd thread-alt depth-1">
+			<article id="div-comment-6294" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/bf98a3d2c58b062aa45a39a3e5e3585c" srcset="http://2.gravatar.com/avatar/bf98a3d2c58b062aa45a39a3e5e3585c?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn"><a href="http://emsistem.com/" rel="external nofollow" class="url">Ercan Mutlu</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-6294">
+							<time datetime="2012-09-28T00:01:14+00:00">
+								2012/09/28 at 12:01 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Hi,Nice article BUT ON Adjacency List Model Getting CAt-&gt;SUbs YOU HAVE WRONG QUERY OR NOT PROPER QUERY, I CANT LIST<br>
+LIKE THIS :<br>
+Missing cats-subs<br>
+a-&gt;  (I need this id)<br>
+a-&gt;b (Also this   id)</p>
+<p>Your Cat-subs<br>
+a-&gt;b-&gt;c (NO directly THIS ID)<br>
+a-&gt;b-&gt;c-&gt;d<br>
+…<br>
+YOUR QUERY PROBLEM IS :<br>
+ CORRECT QUERY MUST BE<br>
+———————–<br>
+  ELECTRONICS | NULL                 |NULL         | NULL  |<br>
+  ELECTRONICS | TELEVISIONS          |NULL         | NULL  |<br>
+  ELECTRONICS | TELEVISIONS          |TUBE         | NULL  |</p>
+<p>YOURQUERY<br>
+————————————<br>
+| ELECTRONICS | TELEVISIONS          | TUBE         | NULL  |<br>
+| ELECTRONICS | TELEVISIONS          | LCD          | NULL  |<br>
+| ELECTRONICS | TELEVISIONS          | PLASMA       | NULL  |</p>
+<p>AND the Question IS HOR TO GET LIKE THIS ?</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=6294#respond" onclick="return addComment.moveForm( &quot;div-comment-6294&quot;, &quot;6294&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Ercan Mutlu">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-10443" class="comment even thread-even depth-1">
+			<article id="div-comment-10443" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/62e7448db7ee11e4da8bcb6375888614" srcset="http://0.gravatar.com/avatar/62e7448db7ee11e4da8bcb6375888614?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Tim</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-10443">
+							<time datetime="2012-11-27T17:30:17+00:00">
+								2012/11/27 at 5:30 PM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Great article.  Really helpful.  Quick question though.  Let’s say I want to get the entire tree but the depth be an offset from the current queried node.  For example (querying for Portable Electronics):</p>
+<p>Electronics = -1<br>
+Portable Electronics = 0<br>
+MP# Players = 1<br>
+CD Player = 1<br>
+2 Way Radio = 1<br>
+Flash = 2</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=10443#respond" onclick="return addComment.moveForm( &quot;div-comment-10443&quot;, &quot;10443&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Tim">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-12140" class="comment odd alt thread-odd thread-alt depth-1">
+			<article id="div-comment-12140" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/4a7e9edec5e6cd8a6ae3cc5fa4704562" srcset="http://1.gravatar.com/avatar/4a7e9edec5e6cd8a6ae3cc5fa4704562?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn"><a href="http://stackoverflow.com/users/260080/marco-demaio" rel="external nofollow" class="url">Marco Demaio</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-12140">
+							<time datetime="2012-12-16T10:25:50+00:00">
+								2012/12/16 at 10:25 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Great article, I looked for it on dev.mysql but it’s not ther anymore.</p>
+<p>One question on Adjacency List Model:</p>
+<p>Let’s say you have in table also <code>position</code> INT field, that let’s you sort nodes that are <strong>on the same level</strong>, in your example let’s say I want “LCD” to come before “TUBE”, or I want “PORTABLE ELECTRONICS” to come before “TELEVISION”.<br>
+Is it still possible to retrieve the full tree with one single query as in your example, but with the nodes already ordered also by position?</p>
+<p>Cause I think adding just <code>ORDER BY position</code> at the end of the query would not be a solution.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=12140#respond" onclick="return addComment.moveForm( &quot;div-comment-12140&quot;, &quot;12140&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Marco Demaio">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-12473" class="comment even thread-even depth-1">
+			<article id="div-comment-12473" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/a1b5ff6c4e7f49a04b83adfb16cdcc22" srcset="http://1.gravatar.com/avatar/a1b5ff6c4e7f49a04b83adfb16cdcc22?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">ivanr</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-12473">
+							<time datetime="2012-12-20T16:10:48+00:00">
+								2012/12/20 at 4:10 PM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Great article Mike! I have a menu structured in the adjacency list model and  I needed to retrieve a single path where the last node could be at any level. I ended up writing a stored procedure that would return one string the different nodes separated by semi-colon and have PHP parse that string.</p>
+<p>The code is something like this, bear in mind I’m not the best coder and I’m sure it can be optimized:</p>
+
+<div class="wp_syntax"><table><tbody><tr><td class="code"><pre class="sql" style="font-family:monospace;"><span style="color: #993333; font-weight: bold;">CREATE</span> DEFINER<span style="color: #66cc66;">=</span><span style="color: #ff0000;">`root`</span>@<span style="color: #ff0000;">`localhost`</span> <span style="color: #993333; font-weight: bold;">PROCEDURE</span> <span style="color: #ff0000;">`GetMenuPath`</span><span style="color: #66cc66;">(</span><span style="color: #993333; font-weight: bold;">IN</span> <span style="color: #ff0000;">`myNode`</span> <span style="color: #993333; font-weight: bold;">VARCHAR</span><span style="color: #66cc66;">(</span><span style="color: #cc66cc;">50</span><span style="color: #66cc66;">)</span><span style="color: #66cc66;">,</span> <span style="color: #993333; font-weight: bold;">OUT</span> <span style="color: #ff0000;">`menuPath`</span> <span style="color: #993333; font-weight: bold;">VARCHAR</span><span style="color: #66cc66;">(</span><span style="color: #cc66cc;">200</span><span style="color: #66cc66;">)</span><span style="color: #66cc66;">)</span>
+    NO <span style="color: #993333; font-weight: bold;">SQL</span>
+<span style="color: #993333; font-weight: bold;">BEGIN</span>
+&nbsp;
+<span style="color: #993333; font-weight: bold;">DECLARE</span> myParent <span style="color: #993333; font-weight: bold;">INT</span>;
+<span style="color: #993333; font-weight: bold;">DECLARE</span> myNewParent <span style="color: #993333; font-weight: bold;">INT</span>;
+<span style="color: #993333; font-weight: bold;">DECLARE</span> myNewPath <span style="color: #993333; font-weight: bold;">VARCHAR</span><span style="color: #66cc66;">(</span><span style="color: #cc66cc;">200</span><span style="color: #66cc66;">)</span>;
+&nbsp;
+<span style="color: #993333; font-weight: bold;">SET</span> menuPath <span style="color: #66cc66;">=</span> myNode;
+<span style="color: #993333; font-weight: bold;">SELECT</span> menu_parent <span style="color: #993333; font-weight: bold;">INTO</span> myParent <span style="color: #993333; font-weight: bold;">FROM</span> menu <span style="color: #993333; font-weight: bold;">WHERE</span> menu_item <span style="color: #66cc66;">=</span> myNode;
+&nbsp;
+while myParent &amp;gt; <span style="color: #cc66cc;">0</span> do  <span style="color: #808080; font-style: italic;">/* Not zero or null */</span>
+	<span style="color: #993333; font-weight: bold;">SELECT</span> concat<span style="color: #66cc66;">(</span>menuPath<span style="color: #66cc66;">,</span> <span style="color: #ff0000;">';'</span><span style="color: #66cc66;">,</span> menu_item<span style="color: #66cc66;">)</span> <span style="color: #993333; font-weight: bold;">INTO</span> myNewPath <span style="color: #993333; font-weight: bold;">FROM</span> menu <span style="color: #993333; font-weight: bold;">WHERE</span> menu_id <span style="color: #66cc66;">=</span> myParent;
+	<span style="color: #993333; font-weight: bold;">SET</span> menuPath <span style="color: #66cc66;">=</span> myNewPath;
+	<span style="color: #993333; font-weight: bold;">SELECT</span> menu_parent <span style="color: #993333; font-weight: bold;">INTO</span> myNewParent <span style="color: #993333; font-weight: bold;">FROM</span> menu <span style="color: #993333; font-weight: bold;">WHERE</span> menu_id <span style="color: #66cc66;">=</span> myParent;
+	<span style="color: #993333; font-weight: bold;">SET</span> myParent <span style="color: #66cc66;">=</span> myNewParent;
+<span style="color: #993333; font-weight: bold;">END</span> while;
+&nbsp;
+<span style="color: #993333; font-weight: bold;">END</span></pre></td></tr></tbody></table></div>
+
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=12473#respond" onclick="return addComment.moveForm( &quot;div-comment-12473&quot;, &quot;12473&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to ivanr">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-12842" class="comment odd alt thread-odd thread-alt depth-1">
+			<article id="div-comment-12842" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/ff5c8123687675d7fb21fe5f01044b60" srcset="http://0.gravatar.com/avatar/ff5c8123687675d7fb21fe5f01044b60?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Stefan Stavrev</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-12842">
+							<time datetime="2012-12-26T03:27:16+00:00">
+								2012/12/26 at 3:27 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>If I may point one possible improvement over your model. When you do your SELECT and GROUP BY statements, to use the ID instead of the name. Imagine you have child nodes with the same name, but different parents.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=12842#respond" onclick="return addComment.moveForm( &quot;div-comment-12842&quot;, &quot;12842&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Stefan Stavrev">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-12892" class="comment even thread-even depth-1">
+			<article id="div-comment-12892" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/6a74efc309e667c1e811d1829cb2051c" srcset="http://0.gravatar.com/avatar/6a74efc309e667c1e811d1829cb2051c?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn"><a href="http://asnawi.stmikayani.ac.id/" rel="external nofollow" class="url">Choerun Asnawi</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-12892">
+							<time datetime="2012-12-26T21:29:45+00:00">
+								2012/12/26 at 9:29 PM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Good article! In addition, use this query to simulate the “old-way” adjacency list model table structure:</p>
+<pre>SELECT child.category_id AS category_id,
+  child.name AS name,
+  parent.category_id AS parent
+FROM nested_category AS child
+  LEFT JOIN nested_category AS parent
+    ON parent.lft = (
+      SELECT MAX(anchestor.lft)
+      FROM nested_category AS node,
+        nested_category AS anchestor
+      WHERE anchestor.lft  node.rgt
+        AND node.category_id = child.category_id
+    )
+  ORDER BY child.lft;
+</pre>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=12892#respond" onclick="return addComment.moveForm( &quot;div-comment-12892&quot;, &quot;12892&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Choerun Asnawi">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-13590" class="comment odd alt thread-odd thread-alt depth-1 parent">
+			<article id="div-comment-13590" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/aa4a2e6e306324a2ee8cbe4a987f590a" srcset="http://1.gravatar.com/avatar/aa4a2e6e306324a2ee8cbe4a987f590a?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">victor wallin</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-13590">
+							<time datetime="2013-01-07T04:43:00+00:00">
+								2013/01/07 at 4:43 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>1) It’s okay to have credits hole in the series?<br>
+| name | lft | rgt |<br>
+| ELECTRONICS | 1 | 8 |<br>
+| TELEVISION | 2 | 3 |<br>
+| PORTABLE ELECTRONICS | 6 | 7 |</p>
+<p>2) is this a good idea?<br>
+| Name | lft | rgt | parent_lft | parentrgt |<br>
+| ELECTRONICS | 1 | 8 | NULL | NULL |<br>
+| TELEVISION | 2 | 3 | 1 | 8 |<br>
+| PORTABLE ELECTRONICS | 6 | 7 | 1 | 8 |</p>
+<p>3) what is the easiest way to convert a tree to a Nested Set?</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=13590#respond" onclick="return addComment.moveForm( &quot;div-comment-13590&quot;, &quot;13590&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to victor wallin">Reply</a></div>			</article><!-- .comment-body -->
+<ol class="children">
+		<li id="comment-50600" class="comment even depth-2">
+			<article id="div-comment-50600" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/8be1c513d3df3675107e760c1f800cf2" srcset="http://2.gravatar.com/avatar/8be1c513d3df3675107e760c1f800cf2?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn"><a href="http://reviewsite/" rel="external nofollow" class="url">shahzad</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-50600">
+							<time datetime="2014-01-18T03:47:13+00:00">
+								2014/01/18 at 3:47 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>I have a category structure up to 5 level<br>
+Music -&gt; Pop -&gt; Michael Jackson -&gt; Thriller -&gt; Thriller – Song<br>
+Suppose i want to search the category with like query ‘%s%’.</p>
+<p>Now s is in 3 level (Level1 = Music),(Level3 = Michael Jackson ),(Level5 = Thriller – Song ).</p>
+<p>Now its give me 3 results instead of 1. How i will get 1 results?<br>
+If i found the result at first level(levle1), it will not search at second level (level2).<br>
+if i found the result at Second level(levle2), it will not search at Third level (level3) and so on.</p>
+<p>Have you idea?</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=50600#respond" onclick="return addComment.moveForm( &quot;div-comment-50600&quot;, &quot;50600&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to shahzad">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+</ol><!-- .children -->
+</li><!-- #comment-## -->
+		<li id="comment-49554" class="comment odd alt thread-even depth-1 parent">
+			<article id="div-comment-49554" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/6ad903e8bbdbb6bd809625763b5833eb" srcset="http://0.gravatar.com/avatar/6ad903e8bbdbb6bd809625763b5833eb?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Oguzcan</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-49554">
+							<time datetime="2014-01-05T16:46:29+00:00">
+								2014/01/05 at 4:46 PM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Thank you in advance for this article. Could you show how to add new root nodes ?</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=49554#respond" onclick="return addComment.moveForm( &quot;div-comment-49554&quot;, &quot;49554&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Oguzcan">Reply</a></div>			</article><!-- .comment-body -->
+<ol class="children">
+		<li id="comment-301489" class="comment even depth-2">
+			<article id="div-comment-301489" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/d0f0e0fe7735123434e0831688c654b6" srcset="http://1.gravatar.com/avatar/d0f0e0fe7735123434e0831688c654b6?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn"><a href="http://vveprymu.com/" rel="external nofollow" class="url">Gerry</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-301489">
+							<time datetime="2016-01-27T17:31:02+00:00">
+								2016/01/27 at 5:31 PM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Heck yeah this is excltay what I needed.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=301489#respond" onclick="return addComment.moveForm( &quot;div-comment-301489&quot;, &quot;301489&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Gerry">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+</ol><!-- .children -->
+</li><!-- #comment-## -->
+		<li id="comment-51316" class="comment odd alt thread-odd thread-alt depth-1">
+			<article id="div-comment-51316" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/68a8c800d58af648b4405215ee325665" srcset="http://0.gravatar.com/avatar/68a8c800d58af648b4405215ee325665?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Quick Correction</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-51316">
+							<time datetime="2014-01-29T11:43:09+00:00">
+								2014/01/29 at 11:43 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>In the ordering for the nested set, I believe it should be<br>
+‘ORDER BY parent.lft’ as opposed to ‘node.lft’.</p>
+<p>If we look at the Retrieving a Single Path section, it does not make sense to order by node.lft, since node.lft is all the same tuple (we’ve queried for a node.lft=’FLASH’).</p>
+<p>If we had a “SELECT parent.name, node.name …” it would like like the following:</p>
+<p>name                                    | name<br>
+————————————————<br>
+MP3 PLAYERS                     | FLASH<br>
+FLASH                                  | FLASH<br>
+ELECTRONICS                     | FLASH<br>
+PORTABLE ELECTRONICS | FLASH</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=51316#respond" onclick="return addComment.moveForm( &quot;div-comment-51316&quot;, &quot;51316&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Quick Correction">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-51605" class="pingback even thread-even depth-1">
+			<div class="comment-body">
+				Pingback: <a href="http://emsusefulsql.wordpress.com/2014/02/06/mysql-leaf-nodes/" rel="external nofollow" class="url">mySQL | leaf nodes | SQL snippets</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-67884" class="comment odd alt thread-odd thread-alt depth-1 parent">
+			<article id="div-comment-67884" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/3c8ce0656901c3ca75124fa7c9cf1d91" srcset="http://0.gravatar.com/avatar/3c8ce0656901c3ca75124fa7c9cf1d91?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Heinz</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-67884">
+							<time datetime="2014-04-02T07:23:03+00:00">
+								2014/04/02 at 7:23 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Hello<br>
+I have set up my page with nested tree. But the biggest problem is still when I add a new category/subcategory. Afterwards you have to renumber all articles in your database because most of them got a new category number. If you have 500’000 acticle this takes long and all your references change too.<br>
+I wonder how ebay is doing this? You can’t stop trading while updating.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=67884#respond" onclick="return addComment.moveForm( &quot;div-comment-67884&quot;, &quot;67884&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Heinz">Reply</a></div>			</article><!-- .comment-body -->
+<ol class="children">
+		<li id="comment-67887" class="comment byuser comment-author-admin bypostauthor even depth-2">
+			<article id="div-comment-67887" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/34d489f942088bdfbb6e8469e8000c2e" srcset="http://0.gravatar.com/avatar/34d489f942088bdfbb6e8469e8000c2e?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn"><a href="http://mikehillyer.com/about-me/" rel="external nofollow" class="url">Mike Hillyer</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-67887">
+							<time datetime="2014-04-02T07:31:19+00:00">
+								2014/04/02 at 7:31 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Hello Heinz, look at <a href="http://www.amazon.com/gp/product/0123877334/ref=as_li_ss_tl?ie=UTF8&amp;camp=1789&amp;creative=390957&amp;creativeASIN=0123877334&amp;linkCode=as2&amp;tag=mikehillyer-20" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-comment&#39;, &#39;http://www.amazon.com/gp/product/0123877334/ref=as_li_ss_tl?ie=UTF8&amp;camp=1789&amp;creative=390957&amp;creativeASIN=0123877334&amp;linkCode=as2&amp;tag=mikehillyer-20&#39;, &#39;Trees and Hierarchies in SQL for Smarties&#39;);" target="_blank" rel="nofollow">Trees and Hierarchies in SQL for Smarties</a> to get a lot of advanced tips. One I can share here is to look at using index numbers that increment by 1,000 instead of by one, when you need to add a node you place it between two existing index numbers, then occasionally during slow periods you re-index everything.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=67887#respond" onclick="return addComment.moveForm( &quot;div-comment-67887&quot;, &quot;67887&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Mike Hillyer">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+</ol><!-- .children -->
+</li><!-- #comment-## -->
+		<li id="comment-70210" class="comment odd alt thread-even depth-1">
+			<article id="div-comment-70210" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/d71482f51ad1ea3513134c57aa85d279" srcset="http://1.gravatar.com/avatar/d71482f51ad1ea3513134c57aa85d279?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Mohsen Nekoulal Tak</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-70210">
+							<time datetime="2014-04-05T09:27:51+00:00">
+								2014/04/05 at 9:27 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>very nice article. But now i have a question. how can i receive directly a specified depth of a optional parent? For example, i choose PORTABLE ELECTRONICS as the parent and i want to get the depth:2 which will be resulted the FLASH.<br>
+Can u help me?</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=70210#respond" onclick="return addComment.moveForm( &quot;div-comment-70210&quot;, &quot;70210&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Mohsen Nekoulal Tak">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-260362" class="comment even thread-odd thread-alt depth-1">
+			<article id="div-comment-260362" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/35f8601cc214465fe5cf0e487f01d926" srcset="http://0.gravatar.com/avatar/35f8601cc214465fe5cf0e487f01d926?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Misha Dar</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-260362">
+							<time datetime="2014-11-04T12:30:11+00:00">
+								2014/11/04 at 12:30 PM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>First compliments on article – it’s really straight &amp; forward explaining approach concepts of building hierarchical model in RDBS.<br>
+But, with all respect you can not take full advantage of using it in real world in MySQL DB engine without applied knowledge in structuring and using Spatial Data Type  extension… cause using default (BTREE) index to perform nested set join like</p>
+<p><i>FROM nested_table AS node,  nested_category AS parent</i></p>
+<p>will chock a query on performance in mega volume sets.</p>
+<p>So in MySQL, LFT RGT columns define as geometrical data type is highly recommended and so self cartesian product join will look something like:</p>
+<p>FROM nested_table AS node<br>
+JOIN nested_table AS  AS parent ON (MBRWithin(Point(0, node.lft), parent.lft_rgt_range))</p>
+<p>or close to it <img draggable="false" class="emoji" alt="🙂" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/1f642.png"><br>
+Cheers</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=260362#respond" onclick="return addComment.moveForm( &quot;div-comment-260362&quot;, &quot;260362&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Misha Dar">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-282341" class="pingback odd alt thread-even depth-1">
+			<div class="comment-body">
+				Pingback: <a href="http://dluat.com/hierarcy-query-mysql/" rel="external nofollow" class="url">Hierarcy Query Mysql - DL-UAT</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-282582" class="pingback even thread-odd thread-alt depth-1">
+			<div class="comment-body">
+				Pingback: <a href="http://php4switch.wordpress.com/2015/01/08/77/" rel="external nofollow" class="url">PHP 4 Switch</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-282708" class="pingback odd alt thread-even depth-1">
+			<div class="comment-body">
+				Pingback: <a href="http://dluat.com/stored-procedure-to-update-an-adjacency-model-to-nested-sets-model/" rel="external nofollow" class="url">Stored Procedure to update an adjacency Model to Nested Sets Model | DL-UAT</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-282851" class="pingback even thread-odd thread-alt depth-1">
+			<div class="comment-body">
+				Pingback: <a href="http://iust.pp.ua/2015/01/15/solution-how-to-determine-the-first-and-last-iteration-in-a-foreach-loop-solution-programming-it/" rel="external nofollow" class="url">Solution: How to determine the first and last iteration in a foreach loop? #solution #programming #it | IT Info</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-283220" class="pingback odd alt thread-even depth-1">
+			<div class="comment-body">
+				Pingback: <a href="http://fytro.info/how-to-merge-two-tables-for-a-query/" rel="external nofollow" class="url">How to merge two tables for a query? | FYTRO SPORTS</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-283411" class="comment even thread-odd thread-alt depth-1">
+			<article id="div-comment-283411" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/43c5d2620cd380b96b7ab03ce822a1c2" srcset="http://1.gravatar.com/avatar/43c5d2620cd380b96b7ab03ce822a1c2?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Adam</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-283411">
+							<time datetime="2015-01-29T23:45:44+00:00">
+								2015/01/29 at 11:45 PM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Hello friends. I’ve just switched from Adjacency List Model to nested set model.</p>
+<p>I’think i’m starting to understand what is going on, but i have big problem – i cannot draw my tree as html menu. i found some sources/examples (<a href="http://stackoverflow.com/questions/1310649/getting-a-modified-preorder-tree-traversal-model-nested-set-into-a-ul" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-comment&#39;, &#39;http://stackoverflow.com/questions/1310649/getting-a-modified-preorder-tree-traversal-model-nested-set-into-a-ul&#39;, &#39;http://stackoverflow.com/questions/1310649/getting-a-modified-preorder-tree-traversal-model-nested-set-into-a-ul&#39;);" rel="nofollow">http://stackoverflow.com/questions/1310649/getting-a-modified-preorder-tree-traversal-model-nested-set-into-a-ul</a>) on the net, but it’s a little hard to me to port them to work with Your examples. Can anybody help me with that? Thank you.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=283411#respond" onclick="return addComment.moveForm( &quot;div-comment-283411&quot;, &quot;283411&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Adam">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-283750" class="comment odd alt thread-even depth-1">
+			<article id="div-comment-283750" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/818f3428f062a0cc2999563c5e635540" srcset="http://2.gravatar.com/avatar/818f3428f062a0cc2999563c5e635540?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">spratters</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-283750">
+							<time datetime="2015-02-04T04:28:26+00:00">
+								2015/02/04 at 4:28 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Hey there,<br>
+Just wanted to thank you for the article. I was working out ways to best get results from a nested set and my mind was turning to mush. Luckily I had a read through this article and all became clear.<br>
+Cheers</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=283750#respond" onclick="return addComment.moveForm( &quot;div-comment-283750&quot;, &quot;283750&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to spratters">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-283851" class="pingback even thread-odd thread-alt depth-1">
+			<div class="comment-body">
+				Pingback: <a href="http://www.52sourcecode.com/post-28017.html" rel="external nofollow" class="url">Getting the depth of a nested set model query | 我爱源码网</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-285069" class="pingback odd alt thread-even depth-1">
+			<div class="comment-body">
+				Pingback: <a href="http://www.tech.theplayhub.com/count_of_items_by_depth_with_a_nested_set_model/" rel="external nofollow" class="url">Count of items by depth with a nested set model - Technology</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-285389" class="pingback even thread-odd thread-alt depth-1">
+			<div class="comment-body">
+				Pingback: <a href="http://xluat.com/select-products-where-the-category-belongs-to-any-category-in-the-hierarchy/" rel="external nofollow" class="url">Select products where the category belongs to any category in the hierarchy | XL-UAT</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-285511" class="pingback odd alt thread-even depth-1">
+			<div class="comment-body">
+				Pingback: <a href="http://www.tech.theplayhub.com/what_are_the_options_for_storing_hierarchical_data_in_a_relational_database/" rel="external nofollow" class="url">What are the Options for Storing Hierarchical Data in a Relational Database? - Technology</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-285516" class="pingback even thread-odd thread-alt depth-1">
+			<div class="comment-body">
+				Pingback: <a href="http://www.52sourcecode.com/post-186868.html" rel="external nofollow" class="url">MySql Hierarchical Database in Java Web App Jquery Tree | 我爱源码网</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-288367" class="comment odd alt thread-even depth-1">
+			<article id="div-comment-288367" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/fca82d35c3e28ba6a94aa016db137934" srcset="http://0.gravatar.com/avatar/fca82d35c3e28ba6a94aa016db137934?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Adam</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-288367">
+							<time datetime="2015-04-18T21:35:28+00:00">
+								2015/04/18 at 9:35 PM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Hi, I’ve implemented nsm in my project, thanks to this article.<br>
+Now I’m trying to get a simple method of showing all (lets say) products) of given parent category (which can contain many subcategories). Is there any chance to somebody give any tip on how to acheive this?</p>
+<p>best regards<br>
+Adam</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=288367#respond" onclick="return addComment.moveForm( &quot;div-comment-288367&quot;, &quot;288367&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Adam">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-288634" class="comment even thread-odd thread-alt depth-1">
+			<article id="div-comment-288634" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/1b1e71bcdf504981b309bae6c79b4cfe" srcset="http://1.gravatar.com/avatar/1b1e71bcdf504981b309bae6c79b4cfe?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Martin F</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-288634">
+							<time datetime="2015-04-22T16:07:14+00:00">
+								2015/04/22 at 4:07 PM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Under Retrieving a Single Path, you can/should leave out (excuse the pun) the<br>
+“t1.name = ‘ELECTRONICS’ AND”<br>
+part of the WHERE clause. The query will find the path to the root.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=288634#respond" onclick="return addComment.moveForm( &quot;div-comment-288634&quot;, &quot;288634&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Martin F">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-288953" class="pingback odd alt thread-even depth-1">
+			<div class="comment-body">
+				Pingback: <a href="https://entwickler.de/online/php/mysql-5-6-4-mit-neuen-performance-schema-eigenschaften-132727.html" rel="external nofollow" class="url">MySQL 5.6.4 mit neuen Performance-Schema-Eigenschaften - entwickler.de</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-289309" class="comment even thread-odd thread-alt depth-1">
+			<article id="div-comment-289309" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/643bf62487c10de73eb0adc036e3fea0" srcset="http://0.gravatar.com/avatar/643bf62487c10de73eb0adc036e3fea0?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Bruno Lebtag</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-289309">
+							<time datetime="2015-05-02T13:00:50+00:00">
+								2015/05/02 at 1:00 PM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>I tried Retriving a single path and your query didn’t worked. I changed ‘ORDER BY node.lft’ to ‘ORDER BY parent.lft’ and worked. My mysql is 5.6.19-1~exp1ubuntu2. Excellent work! thanks a lot.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=289309#respond" onclick="return addComment.moveForm( &quot;div-comment-289309&quot;, &quot;289309&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Bruno Lebtag">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-290710" class="pingback odd alt thread-even depth-1">
+			<div class="comment-body">
+				Pingback: <a href="http://dluat.com/nested-set-model-retrieve-sub-tree-containing-nodes-that-match-condition/" rel="external nofollow" class="url">Nested set model: retrieve sub-tree containing nodes that match condition | DL-UAT</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-292265" class="comment even thread-odd thread-alt depth-1">
+			<article id="div-comment-292265" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/fcb5fbab439a7a6ff3517f928e608379" srcset="http://0.gravatar.com/avatar/fcb5fbab439a7a6ff3517f928e608379?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">tyan4g</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-292265">
+							<time datetime="2015-06-16T03:33:10+00:00">
+								2015/06/16 at 3:33 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Finding the Depth of the Nodes:<br>
+SELECT node.name, (COUNT(parent.name) – 1) AS depth<br>
+FROM nested_category AS node,<br>
+        nested_category AS parent<br>
+WHERE node.lft BETWEEN parent.lft AND parent.rgt<br>
+GROUP BY node.name<br>
+ORDER BY node.lft;<br>
+I find this is problematic, cause if I add two item with the same name will cause the depth got a wrong result..plz help me..</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=292265#respond" onclick="return addComment.moveForm( &quot;div-comment-292265&quot;, &quot;292265&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to tyan4g">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-292397" class="comment odd alt thread-even depth-1">
+			<article id="div-comment-292397" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/6770aeff872982d7cb1807b364332075" srcset="http://0.gravatar.com/avatar/6770aeff872982d7cb1807b364332075?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn"><a href="http://www.moving-bytes.at/" rel="external nofollow" class="url">Andreas Beder</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-292397">
+							<time datetime="2015-06-23T08:06:00+00:00">
+								2015/06/23 at 8:06 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Thanks !!!</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=292397#respond" onclick="return addComment.moveForm( &quot;div-comment-292397&quot;, &quot;292397&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Andreas Beder">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-292418" class="pingback even thread-odd thread-alt depth-1">
+			<div class="comment-body">
+				Pingback: <a href="http://dexpage.com/listing-of-all-elements-recursively-through-postgresql/" rel="external nofollow" class="url">Listing of all elements recursively through postgresql - dex page</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-300891" class="pingback odd alt thread-even depth-1">
+			<div class="comment-body">
+				Pingback: <a href="http://htmlcode.space/adjacency-list-model-vs-nested-set-model-for-mysql-hierarchical-data/" rel="external nofollow" class="url">Adjacency List Model vs Nested Set Model for MySQL hierarchical data? - HTML CODE</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-300917" class="pingback even thread-odd thread-alt depth-1">
+			<div class="comment-body">
+				Pingback: <a href="http://htmlcode.space/laravel-query-builder-returns-empty-array-despite-it-being-not-null/" rel="external nofollow" class="url">Laravel Query builder returns empty array despite it being not null - HTML CODE</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-300918" class="pingback odd alt thread-even depth-1">
+			<div class="comment-body">
+				Pingback: <a href="http://blogfordevs.esy.es/blogs/?p=13056" rel="external nofollow" class="url">Multi level hierarchy relation in flat table design (MySql)</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-301010" class="comment even thread-odd thread-alt depth-1">
+			<article id="div-comment-301010" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/8f2061c8e1a154d3dc32ff7378da65c7" srcset="http://2.gravatar.com/avatar/8f2061c8e1a154d3dc32ff7378da65c7?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">David Kaštánek</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-301010">
+							<time datetime="2016-01-17T06:20:29+00:00">
+								2016/01/17 at 6:20 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Awesome idea! I knew this method existed and after reading this I also know how to implement it. Thank you very much <img draggable="false" class="emoji" alt="🙂" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/1f642.png"></p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=301010#respond" onclick="return addComment.moveForm( &quot;div-comment-301010&quot;, &quot;301010&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to David Kaštánek">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-301550" class="comment odd alt thread-even depth-1">
+			<article id="div-comment-301550" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/57df5975045f82f6e0445acb383011d4" srcset="http://2.gravatar.com/avatar/57df5975045f82f6e0445acb383011d4?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">e2xist</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-301550">
+							<time datetime="2016-01-28T14:46:08+00:00">
+								2016/01/28 at 2:46 PM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>thanks a lot !</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=301550#respond" onclick="return addComment.moveForm( &quot;div-comment-301550&quot;, &quot;301550&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to e2xist">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-301762" class="pingback even thread-odd thread-alt depth-1">
+			<div class="comment-body">
+				Pingback: <a href="http://www.nmtree.net/2016/02/01/options-for-storing-hierarchical-data-in-a-relational-database.html" rel="external nofollow" class="url">Options for Storing Hierarchical Data in a Relational Database | 柠檬树博客</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-301898" class="comment odd alt thread-even depth-1">
+			<article id="div-comment-301898" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/57df5975045f82f6e0445acb383011d4" srcset="http://2.gravatar.com/avatar/57df5975045f82f6e0445acb383011d4?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">ummmmm</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-301898">
+							<time datetime="2016-02-09T16:09:23+00:00">
+								2016/02/09 at 4:09 PM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Finding the Depth of the Nodes,</p>
+<p>select<br>
+node.id as id,<br>
+node.lft as lft,node.rgt as rgt,<br>
+parent.id as top_parent_id,<br>
+(count(parent.id)-1) as depth<br>
+FROM<br>
+nested_category as parent_ctl,<br>
+nested_category as parent,<br>
+nested_category as node<br>
+where<br>
+parent.lft between parent_ctl.lft and parent_ctl.rgt<br>
+and node.lft between parent.lft and parent.rgt<br>
+and parent_ctl.id = ?<br>
+group by node.id<br>
+order by node.lft</p>
+<p>* title -&gt; id</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=301898#respond" onclick="return addComment.moveForm( &quot;div-comment-301898&quot;, &quot;301898&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to ummmmm">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-302059" class="pingback even thread-odd thread-alt depth-1">
+			<div class="comment-body">
+				Pingback: <a href="http://techabcto.xyz/2008/08/30/designing-a-threaded-commenting-system-answered/" rel="external nofollow" class="url">Designing a threaded commenting system [ANSWERED] - Tech ABC to XYZ</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-302133" class="comment odd alt thread-even depth-1">
+			<article id="div-comment-302133" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/3659a884de11027ed4a4c66aa52ec8d3" srcset="http://0.gravatar.com/avatar/3659a884de11027ed4a4c66aa52ec8d3?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Wojciech Glapa</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-302133">
+							<time datetime="2016-02-23T04:41:37+00:00">
+								2016/02/23 at 4:41 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Very usefull, thanks.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=302133#respond" onclick="return addComment.moveForm( &quot;div-comment-302133&quot;, &quot;302133&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Wojciech Glapa">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-302212" class="comment even thread-odd thread-alt depth-1">
+			<article id="div-comment-302212" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/80ae5c8689fd161edce64e1506144f54" srcset="http://2.gravatar.com/avatar/80ae5c8689fd161edce64e1506144f54?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Thomas</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-302212">
+							<time datetime="2016-03-01T07:26:59+00:00">
+								2016/03/01 at 7:26 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Man, you save our lives. Thanks so much! Nice job and was the best tutorial about this issue. Best regards</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=302212#respond" onclick="return addComment.moveForm( &quot;div-comment-302212&quot;, &quot;302212&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Thomas">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-302256" class="comment odd alt thread-even depth-1">
+			<article id="div-comment-302256" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/021e3e13475b63385fa3c88e67206073" srcset="http://0.gravatar.com/avatar/021e3e13475b63385fa3c88e67206073?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn"><a href="http://anshrpr.com/" rel="external nofollow" class="url">Sagar Khandelwal</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-302256">
+							<time datetime="2016-03-04T03:24:38+00:00">
+								2016/03/04 at 3:24 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Insert a new node<br>
+——————————-<br>
+LOCK TABLE nested_category WRITE;</p>
+<p>SELECT @myRight := rgt FROM nested_category<br>
+WHERE name = ‘TELEVISIONS’;</p>
+<p>UPDATE nested_category SET rgt = rgt + 2 WHERE rgt &gt; @myRight;<br>
+UPDATE nested_category SET lft = lft + 2 WHERE lft &gt; @myRight;</p>
+<p>INSERT INTO nested_category(name, lft, rgt) VALUES(‘GAME CONSOLES’, @myRight + 1, @myRight + 2);</p>
+<p>UNLOCK TABLES;<br>
+————————-<br>
+This gives Game Console left=10 and right = 11, while right of Television remains 9. Resulting a corrupted tree.</p>
+<p>Instead, you can select @myRight := rgt – 1, and rest of the query would work fine.</p>
+<p>Regards</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=302256#respond" onclick="return addComment.moveForm( &quot;div-comment-302256&quot;, &quot;302256&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Sagar Khandelwal">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-302519" class="comment even thread-odd thread-alt depth-1">
+			<article id="div-comment-302519" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/26df38d26f5a20421f931a7ec0dfcbc0" srcset="http://2.gravatar.com/avatar/26df38d26f5a20421f931a7ec0dfcbc0?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Zhong chaojun</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-302519">
+							<time datetime="2016-03-14T04:35:33+00:00">
+								2016/03/14 at 4:35 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>In section RETRIEVING A SINGLE PATH, order by parent.lft not node.lft</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=302519#respond" onclick="return addComment.moveForm( &quot;div-comment-302519&quot;, &quot;302519&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Zhong chaojun">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-302992" class="comment odd alt thread-even depth-1">
+			<article id="div-comment-302992" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/c6a5b8a129d2b37b3aa36fc3e7680876" srcset="http://0.gravatar.com/avatar/c6a5b8a129d2b37b3aa36fc3e7680876?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn"><a href="http://www.transglobalmegacorp.co.uk/" rel="external nofollow" class="url">Carl Sanders</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-302992">
+							<time datetime="2016-03-23T08:02:12+00:00">
+								2016/03/23 at 8:02 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Fantastic article Mike!</p>
+<p>There is a further improvement to this model where you store the depth with each node.  That makes querying for sub-trees and adjacent entities far simpler.  In symphony there is a nested set library available for doctrine (which I have used) and there’s also a php lib called Boabab (which I haven’t).</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=302992#respond" onclick="return addComment.moveForm( &quot;div-comment-302992&quot;, &quot;302992&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Carl Sanders">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-304010" class="comment even thread-odd thread-alt depth-1">
+			<article id="div-comment-304010" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/8dbd34aaea392b425c8db024407c3a1a" srcset="http://2.gravatar.com/avatar/8dbd34aaea392b425c8db024407c3a1a?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Programmer</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-304010">
+							<time datetime="2016-04-11T07:06:23+00:00">
+								2016/04/11 at 7:06 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Great article.</p>
+<p>How to move a node?</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=304010#respond" onclick="return addComment.moveForm( &quot;div-comment-304010&quot;, &quot;304010&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Programmer">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-304607" class="comment odd alt thread-even depth-1 parent">
+			<article id="div-comment-304607" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/976e165a9bd4b1aaf035f790545a0776" srcset="http://0.gravatar.com/avatar/976e165a9bd4b1aaf035f790545a0776?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Vahid</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-304607">
+							<time datetime="2016-05-08T05:30:07+00:00">
+								2016/05/08 at 5:30 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Thanks for this awesome article. It shows the deep of concepts which author obtained. Bravo<br>
+There’s a question i’m thinking about it:</p>
+<p>How we can build a lft,rgt type (The Nested Set) tree with an Adjacency List tree which already we have?</p>
+<p>imagine there’s a table : id,parent_id,title with 500000 or more records.<br>
+How can convert this table?</p>
+<p>Regards.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=304607#respond" onclick="return addComment.moveForm( &quot;div-comment-304607&quot;, &quot;304607&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Vahid">Reply</a></div>			</article><!-- .comment-body -->
+<ol class="children">
+		<li id="comment-304644" class="comment even depth-2">
+			<article id="div-comment-304644" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/976e165a9bd4b1aaf035f790545a0776" srcset="http://0.gravatar.com/avatar/976e165a9bd4b1aaf035f790545a0776?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn">Vahid</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-304644">
+							<time datetime="2016-05-09T00:41:57+00:00">
+								2016/05/09 at 12:41 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>I found this great soloution:<br>
+<a href="http://dba.stackexchange.com/questions/89051/stored-procedure-to-update-an-adjacency-model-to-nested-sets-model" onclick="__gaTracker(&#39;send&#39;, &#39;event&#39;, &#39;outbound-comment&#39;, &#39;http://dba.stackexchange.com/questions/89051/stored-procedure-to-update-an-adjacency-model-to-nested-sets-model&#39;, &#39;http://dba.stackexchange.com/questions/89051/stored-procedure-to-update-an-adjacency-model-to-nested-sets-model&#39;);" rel="nofollow">http://dba.stackexchange.com/questions/89051/stored-procedure-to-update-an-adjacency-model-to-nested-sets-model</a></p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=304644#respond" onclick="return addComment.moveForm( &quot;div-comment-304644&quot;, &quot;304644&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Vahid">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+</ol><!-- .children -->
+</li><!-- #comment-## -->
+		<li id="comment-304856" class="comment odd alt thread-odd thread-alt depth-1 parent">
+			<article id="div-comment-304856" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/c53bd9c46a0329c34d4e8f511e23c9e7" srcset="http://0.gravatar.com/avatar/c53bd9c46a0329c34d4e8f511e23c9e7?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn"><a href="http://programacaoelinux.com.br/" rel="external nofollow" class="url">Jeff</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-304856">
+							<time datetime="2016-05-16T09:21:26+00:00">
+								2016/05/16 at 9:21 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>First thank you for the post, it’s really helpful. I have a question, maybe a silly one, but in case I have two parents, for instance, following your reasoning, suppose we have Electronics and Home appliance as the topmost parents,  so this model would work the same? Just adding another topmost category as NULL? Tks in advance.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=304856#respond" onclick="return addComment.moveForm( &quot;div-comment-304856&quot;, &quot;304856&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Jeff">Reply</a></div>			</article><!-- .comment-body -->
+<ol class="children">
+		<li id="comment-304858" class="comment byuser comment-author-admin bypostauthor even depth-2">
+			<article id="div-comment-304858" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/34d489f942088bdfbb6e8469e8000c2e" srcset="http://0.gravatar.com/avatar/34d489f942088bdfbb6e8469e8000c2e?s=84&amp;d=mm&amp;r=g 2x" class="avatar avatar-42 photo" height="42" width="42">						<b class="fn"><a href="http://mikehillyer.com/about-me/" rel="external nofollow" class="url">Mike Hillyer</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-304858">
+							<time datetime="2016-05-16T09:49:48+00:00">
+								2016/05/16 at 9:49 AM							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Yes, you will have an un-displayed parent, and the first two children are Electronics and Home.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a rel="nofollow" class="comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/?replytocom=304858#respond" onclick="return addComment.moveForm( &quot;div-comment-304858&quot;, &quot;304858&quot;, &quot;respond&quot;, &quot;72&quot; )" aria-label="Reply to Mike Hillyer">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+</ol><!-- .children -->
+</li><!-- #comment-## -->
+		</ol><!-- .comment-list -->
+
+		
+	
+	
+					<div id="respond" class="comment-respond">
+			<h2 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#respond" style="display:none;">Cancel reply</a></small></h2>				<form action="http://mikehillyer.com/wordpress/wp-comments-post.php" method="post" id="commentform" class="comment-form" novalidate="">
+					<p class="comment-notes"><span id="email-notes">Your email address will not be published.</span> Required fields are marked <span class="required">*</span></p><p class="comment-form-comment"><label for="comment">Comment</label> <textarea id="comment" name="comment" cols="45" rows="8" maxlength="65525" aria-required="true" required="required"></textarea></p><p class="comment-form-author"><label for="author">Name <span class="required">*</span></label> <input id="author" name="author" type="text" value="" size="30" maxlength="245" aria-required="true" required="required"></p>
+<p class="comment-form-email"><label for="email">Email <span class="required">*</span></label> <input id="email" name="email" type="email" value="" size="30" maxlength="100" aria-describedby="email-notes" aria-required="true" required="required"></p>
+<p class="comment-form-url"><label for="url">Website</label> <input id="url" name="url" type="url" value="" size="30" maxlength="200"></p>
+<p class="form-submit"><input name="submit" type="submit" id="submit" class="submit" value="Post Comment"> <input type="hidden" name="comment_post_ID" value="72" id="comment_post_ID">
+<input type="hidden" name="comment_parent" id="comment_parent" value="0">
+</p><p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="d904e6e0c6"></p><p style="display: none;"></p>				<input type="hidden" id="ak_js" name="ak_js" value="1468263925783"></form>
+					</div><!-- #respond -->
+		
+</div><!-- .comments-area -->
+
+	</main><!-- .site-main -->
+
+	<aside id="content-bottom-widgets" class="content-bottom-widgets" role="complementary">
+			<div class="widget-area">
+			<section id="text-3" class="widget widget_text"><h2 class="widget-title">Monetization!</h2>			<div class="textwidget"><script type="text/javascript" language="javascript" src="http://c.amazon-adsystem.com/aax2/getads.js"></script>
+<script type="text/javascript" language="javascript">
+//<![CDATA[
+aax_getad_mpb({
+  "slot_uuid":"518a6390-5513-400c-bb74-d8e3e1d0f876"
+});
+//]]>
+</script></div>
+		</section><section id="tag_cloud-4" class="widget widget_tag_cloud"><h2 class="widget-title">Tags!</h2><div class="tagcloud"><a href="http://mikehillyer.com/tag/430n/" class="tag-link-49 tag-link-position-1" title="1 topic" style="font-size: 1em;">430n</a>
+<a href="http://mikehillyer.com/tag/a2dp/" class="tag-link-53 tag-link-position-2" title="1 topic" style="font-size: 1em;">A2DP</a>
+<a href="http://mikehillyer.com/tag/apache/" class="tag-link-77 tag-link-position-3" title="1 topic" style="font-size: 1em;">Apache</a>
+<a href="http://mikehillyer.com/tag/bluetooth-audio/" class="tag-link-54 tag-link-position-4" title="1 topic" style="font-size: 1em;">Bluetooth Audio</a>
+<a href="http://mikehillyer.com/tag/business-travel/" class="tag-link-37 tag-link-position-5" title="1 topic" style="font-size: 1em;">Business Travel</a>
+<a href="http://mikehillyer.com/tag/careers/" class="tag-link-35 tag-link-position-6" title="1 topic" style="font-size: 1em;">careers</a>
+<a href="http://mikehillyer.com/tag/chrysler/" class="tag-link-45 tag-link-position-7" title="1 topic" style="font-size: 1em;">Chrysler</a>
+<a href="http://mikehillyer.com/tag/cinematic-titanic/" class="tag-link-5 tag-link-position-8" title="1 topic" style="font-size: 1em;">Cinematic Titanic</a>
+<a href="http://mikehillyer.com/tag/comedy/" class="tag-link-7 tag-link-position-9" title="1 topic" style="font-size: 1em;">Comedy</a>
+<a href="http://mikehillyer.com/tag/deliverability/" class="tag-link-80 tag-link-position-10" title="5 topics" style="font-size: 1em;">Deliverability</a>
+<a href="http://mikehillyer.com/tag/dilbert/" class="tag-link-20 tag-link-position-11" title="1 topic" style="font-size: 1em;">Dilbert</a>
+<a href="http://mikehillyer.com/tag/dodge/" class="tag-link-47 tag-link-position-12" title="1 topic" style="font-size: 1em;">Dodge</a>
+<a href="http://mikehillyer.com/tag/east-meets-watts/" class="tag-link-6 tag-link-position-13" title="1 topic" style="font-size: 1em;">East Meets Watts</a>
+<a href="http://mikehillyer.com/tag/ed-catmull/" class="tag-link-40 tag-link-position-14" title="3 topics" style="font-size: 1em;">Ed Catmull</a>
+<a href="http://mikehillyer.com/tag/email/" class="tag-link-78 tag-link-position-15" title="6 topics" style="font-size: 1em;">Email</a>
+<a href="http://mikehillyer.com/tag/hiring/" class="tag-link-34 tag-link-position-16" title="2 topics" style="font-size: 1em;">hiring</a>
+<a href="http://mikehillyer.com/tag/infrastructure/" class="tag-link-31 tag-link-position-17" title="2 topics" style="font-size: 1em;">infrastructure</a>
+<a href="http://mikehillyer.com/tag/ios-5/" class="tag-link-52 tag-link-position-18" title="1 topic" style="font-size: 1em;">iOS 5</a>
+<a href="http://mikehillyer.com/tag/iphone/" class="tag-link-50 tag-link-position-19" title="1 topic" style="font-size: 1em;">iPhone</a>
+<a href="http://mikehillyer.com/tag/iphone-4/" class="tag-link-51 tag-link-position-20" title="1 topic" style="font-size: 1em;">iPhone 4</a>
+<a href="http://mikehillyer.com/tag/ip-warmup/" class="tag-link-36 tag-link-position-21" title="1 topic" style="font-size: 1em;">IP Warmup</a>
+<a href="http://mikehillyer.com/tag/leadership/" class="tag-link-42 tag-link-position-22" title="1 topic" style="font-size: 1em;">Leadership</a>
+<a href="http://mikehillyer.com/tag/linux/" class="tag-link-74 tag-link-position-23" title="1 topic" style="font-size: 1em;">Linux</a>
+<a href="http://mikehillyer.com/tag/mailchimp/" class="tag-link-16 tag-link-position-24" title="1 topic" style="font-size: 1em;">MailChimp</a>
+<a href="http://mikehillyer.com/tag/management/" class="tag-link-84 tag-link-position-25" title="2 topics" style="font-size: 1em;">Management</a>
+<a href="http://mikehillyer.com/tag/merge/" class="tag-link-25 tag-link-position-26" title="1 topic" style="font-size: 1em;">Merge</a>
+<a href="http://mikehillyer.com/tag/message-systems/" class="tag-link-79 tag-link-position-27" title="4 topics" style="font-size: 1em;">Message Systems</a>
+<a href="http://mikehillyer.com/tag/monitoring/" class="tag-link-30 tag-link-position-28" title="1 topic" style="font-size: 1em;">monitoring</a>
+<a href="http://mikehillyer.com/tag/mta/" class="tag-link-28 tag-link-position-29" title="2 topics" style="font-size: 1em;">MTA</a>
+<a href="http://mikehillyer.com/tag/mysql/" class="tag-link-76 tag-link-position-30" title="1 topic" style="font-size: 1em;">MySQL</a>
+<a href="http://mikehillyer.com/tag/phines-ferb/" class="tag-link-55 tag-link-position-31" title="1 topic" style="font-size: 1em;">Phines &amp; Ferb</a>
+<a href="http://mikehillyer.com/tag/phishing/" class="tag-link-33 tag-link-position-32" title="1 topic" style="font-size: 1em;">Phishing</a>
+<a href="http://mikehillyer.com/tag/php/" class="tag-link-75 tag-link-position-33" title="2 topics" style="font-size: 1em;">PHP</a>
+<a href="http://mikehillyer.com/tag/pixar/" class="tag-link-39 tag-link-position-34" title="2 topics" style="font-size: 1em;">Pixar</a>
+<a href="http://mikehillyer.com/tag/reputation/" class="tag-link-29 tag-link-position-35" title="2 topics" style="font-size: 1em;">Reputation</a>
+<a href="http://mikehillyer.com/tag/rhb/" class="tag-link-48 tag-link-position-36" title="1 topic" style="font-size: 1em;">RHB</a>
+<a href="http://mikehillyer.com/tag/sales-engineer/" class="tag-link-21 tag-link-position-37" title="3 topics" style="font-size: 1em;">Sales Engineer</a>
+<a href="http://mikehillyer.com/tag/security/" class="tag-link-82 tag-link-position-38" title="1 topic" style="font-size: 1em;">Security</a>
+<a href="http://mikehillyer.com/tag/selinux/" class="tag-link-12 tag-link-position-39" title="1 topic" style="font-size: 1em;">SELinux</a>
+<a href="http://mikehillyer.com/tag/spam/" class="tag-link-26 tag-link-position-40" title="1 topic" style="font-size: 1em;">Spam</a>
+<a href="http://mikehillyer.com/tag/telephone/" class="tag-link-24 tag-link-position-41" title="1 topic" style="font-size: 1em;">telephone</a>
+<a href="http://mikehillyer.com/tag/the-pixar-way/" class="tag-link-41 tag-link-position-42" title="1 topic" style="font-size: 1em;">The Pixar Way</a>
+<a href="http://mikehillyer.com/tag/town-country/" class="tag-link-46 tag-link-position-43" title="1 topic" style="font-size: 1em;">Town &amp; Country</a>
+<a href="http://mikehillyer.com/tag/traffic-shaping/" class="tag-link-27 tag-link-position-44" title="2 topics" style="font-size: 1em;">traffic shaping</a>
+<a href="http://mikehillyer.com/tag/twilio/" class="tag-link-23 tag-link-position-45" title="1 topic" style="font-size: 1em;">twilio</a></div>
+</section>		</div><!-- .widget-area -->
+	
+	</aside><!-- .content-bottom-widgets -->
+
+</div><!-- .content-area -->
+
+
+	<aside id="secondary" class="sidebar widget-area" role="complementary">
+		<section id="text-4" class="widget widget_text"><h2 class="widget-title">Monetization</h2>			<div class="textwidget"><script type="text/javascript" language="javascript" src="http://c.amazon-adsystem.com/aax2/getads.js"></script>
+<script type="text/javascript" language="javascript">
+//<![CDATA[
+aax_getad_mpb({
+  "slot_uuid":"176d03c6-86fc-4b83-b574-2d02afabf877"
+});
+//]]>
+</script></div>
+		</section><section id="nav_menu-5" class="widget widget_nav_menu"><h2 class="widget-title">Top Posts</h2><div class="menu-top-posts-container"><ul id="menu-top-posts" class="menu"><li id="menu-item-355" class="menu-item menu-item-type-post_type menu-item-object-page current-menu-item page_item page-item-72 current_page_item menu-item-355"><a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/">Managing Hierarchical Data in MySQL</a></li>
+<li id="menu-item-354" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-354"><a href="http://mikehillyer.com/articles/an-introduction-to-database-normalization/">An Introduction to Database Normalization</a></li>
+<li id="menu-item-353" class="menu-item menu-item-type-post_type menu-item-object-post menu-item-353"><a href="http://mikehillyer.com/email/how-to-send-one-billion-email-marketing-messages-per-month/">How To Send One Billion Email Marketing Messages Per Month</a></li>
+<li id="menu-item-352" class="menu-item menu-item-type-post_type menu-item-object-post menu-item-352"><a href="http://mikehillyer.com/reviews/trees-and-hierarchies-in-sql/">Review – Joe Celko’s Trees and Hierarchies in SQL for Smarties</a></li>
+</ul></div></section>		<section id="recent-posts-3" class="widget widget_recent_entries">		<h2 class="widget-title">Recent Posts</h2>		<ul>
+					<li>
+				<a href="http://mikehillyer.com/photos/worth-1000-words/the-joys-of-yakiniku/">The Joys of Yakiniku</a>
+						</li>
+					<li>
+				<a href="http://mikehillyer.com/reviews/review-aukey-usb-charger/">Review – AUKEY USB Charger (42W 3-Port QuickCharge 3)</a>
+						</li>
+					<li>
+				<a href="http://mikehillyer.com/reviews/review-microsoft-wireless-display-adapter-v2-2016-version/">Review – Microsoft Wireless Display Adapter V2 (2016 Version)</a>
+						</li>
+					<li>
+				<a href="http://mikehillyer.com/sales-engineer/dig-a-little-deeper/">Dig a Little Deeper!</a>
+						</li>
+					<li>
+				<a href="http://mikehillyer.com/message-systems/pictures-from-life-as-a-sales-engineer/">Pictures from Life as a Sales Engineer</a>
+						</li>
+				</ul>
+		</section>		<section id="tag_cloud-3" class="widget widget_tag_cloud"><h2 class="widget-title">Subjects of Interest</h2><div class="tagcloud"><a href="http://mikehillyer.com/tag/430n/" class="tag-link-49 tag-link-position-1" title="1 topic" style="font-size: 1em;">430n</a>
+<a href="http://mikehillyer.com/tag/a2dp/" class="tag-link-53 tag-link-position-2" title="1 topic" style="font-size: 1em;">A2DP</a>
+<a href="http://mikehillyer.com/tag/apache/" class="tag-link-77 tag-link-position-3" title="1 topic" style="font-size: 1em;">Apache</a>
+<a href="http://mikehillyer.com/tag/bluetooth-audio/" class="tag-link-54 tag-link-position-4" title="1 topic" style="font-size: 1em;">Bluetooth Audio</a>
+<a href="http://mikehillyer.com/tag/business-travel/" class="tag-link-37 tag-link-position-5" title="1 topic" style="font-size: 1em;">Business Travel</a>
+<a href="http://mikehillyer.com/tag/careers/" class="tag-link-35 tag-link-position-6" title="1 topic" style="font-size: 1em;">careers</a>
+<a href="http://mikehillyer.com/tag/chrysler/" class="tag-link-45 tag-link-position-7" title="1 topic" style="font-size: 1em;">Chrysler</a>
+<a href="http://mikehillyer.com/tag/cinematic-titanic/" class="tag-link-5 tag-link-position-8" title="1 topic" style="font-size: 1em;">Cinematic Titanic</a>
+<a href="http://mikehillyer.com/tag/comedy/" class="tag-link-7 tag-link-position-9" title="1 topic" style="font-size: 1em;">Comedy</a>
+<a href="http://mikehillyer.com/tag/deliverability/" class="tag-link-80 tag-link-position-10" title="5 topics" style="font-size: 1em;">Deliverability</a>
+<a href="http://mikehillyer.com/tag/dilbert/" class="tag-link-20 tag-link-position-11" title="1 topic" style="font-size: 1em;">Dilbert</a>
+<a href="http://mikehillyer.com/tag/dodge/" class="tag-link-47 tag-link-position-12" title="1 topic" style="font-size: 1em;">Dodge</a>
+<a href="http://mikehillyer.com/tag/east-meets-watts/" class="tag-link-6 tag-link-position-13" title="1 topic" style="font-size: 1em;">East Meets Watts</a>
+<a href="http://mikehillyer.com/tag/ed-catmull/" class="tag-link-40 tag-link-position-14" title="3 topics" style="font-size: 1em;">Ed Catmull</a>
+<a href="http://mikehillyer.com/tag/email/" class="tag-link-78 tag-link-position-15" title="6 topics" style="font-size: 1em;">Email</a>
+<a href="http://mikehillyer.com/tag/hiring/" class="tag-link-34 tag-link-position-16" title="2 topics" style="font-size: 1em;">hiring</a>
+<a href="http://mikehillyer.com/tag/infrastructure/" class="tag-link-31 tag-link-position-17" title="2 topics" style="font-size: 1em;">infrastructure</a>
+<a href="http://mikehillyer.com/tag/ios-5/" class="tag-link-52 tag-link-position-18" title="1 topic" style="font-size: 1em;">iOS 5</a>
+<a href="http://mikehillyer.com/tag/iphone/" class="tag-link-50 tag-link-position-19" title="1 topic" style="font-size: 1em;">iPhone</a>
+<a href="http://mikehillyer.com/tag/iphone-4/" class="tag-link-51 tag-link-position-20" title="1 topic" style="font-size: 1em;">iPhone 4</a>
+<a href="http://mikehillyer.com/tag/ip-warmup/" class="tag-link-36 tag-link-position-21" title="1 topic" style="font-size: 1em;">IP Warmup</a>
+<a href="http://mikehillyer.com/tag/leadership/" class="tag-link-42 tag-link-position-22" title="1 topic" style="font-size: 1em;">Leadership</a>
+<a href="http://mikehillyer.com/tag/linux/" class="tag-link-74 tag-link-position-23" title="1 topic" style="font-size: 1em;">Linux</a>
+<a href="http://mikehillyer.com/tag/mailchimp/" class="tag-link-16 tag-link-position-24" title="1 topic" style="font-size: 1em;">MailChimp</a>
+<a href="http://mikehillyer.com/tag/management/" class="tag-link-84 tag-link-position-25" title="2 topics" style="font-size: 1em;">Management</a>
+<a href="http://mikehillyer.com/tag/merge/" class="tag-link-25 tag-link-position-26" title="1 topic" style="font-size: 1em;">Merge</a>
+<a href="http://mikehillyer.com/tag/message-systems/" class="tag-link-79 tag-link-position-27" title="4 topics" style="font-size: 1em;">Message Systems</a>
+<a href="http://mikehillyer.com/tag/monitoring/" class="tag-link-30 tag-link-position-28" title="1 topic" style="font-size: 1em;">monitoring</a>
+<a href="http://mikehillyer.com/tag/mta/" class="tag-link-28 tag-link-position-29" title="2 topics" style="font-size: 1em;">MTA</a>
+<a href="http://mikehillyer.com/tag/mysql/" class="tag-link-76 tag-link-position-30" title="1 topic" style="font-size: 1em;">MySQL</a>
+<a href="http://mikehillyer.com/tag/phines-ferb/" class="tag-link-55 tag-link-position-31" title="1 topic" style="font-size: 1em;">Phines &amp; Ferb</a>
+<a href="http://mikehillyer.com/tag/phishing/" class="tag-link-33 tag-link-position-32" title="1 topic" style="font-size: 1em;">Phishing</a>
+<a href="http://mikehillyer.com/tag/php/" class="tag-link-75 tag-link-position-33" title="2 topics" style="font-size: 1em;">PHP</a>
+<a href="http://mikehillyer.com/tag/pixar/" class="tag-link-39 tag-link-position-34" title="2 topics" style="font-size: 1em;">Pixar</a>
+<a href="http://mikehillyer.com/tag/reputation/" class="tag-link-29 tag-link-position-35" title="2 topics" style="font-size: 1em;">Reputation</a>
+<a href="http://mikehillyer.com/tag/rhb/" class="tag-link-48 tag-link-position-36" title="1 topic" style="font-size: 1em;">RHB</a>
+<a href="http://mikehillyer.com/tag/sales-engineer/" class="tag-link-21 tag-link-position-37" title="3 topics" style="font-size: 1em;">Sales Engineer</a>
+<a href="http://mikehillyer.com/tag/security/" class="tag-link-82 tag-link-position-38" title="1 topic" style="font-size: 1em;">Security</a>
+<a href="http://mikehillyer.com/tag/selinux/" class="tag-link-12 tag-link-position-39" title="1 topic" style="font-size: 1em;">SELinux</a>
+<a href="http://mikehillyer.com/tag/spam/" class="tag-link-26 tag-link-position-40" title="1 topic" style="font-size: 1em;">Spam</a>
+<a href="http://mikehillyer.com/tag/telephone/" class="tag-link-24 tag-link-position-41" title="1 topic" style="font-size: 1em;">telephone</a>
+<a href="http://mikehillyer.com/tag/the-pixar-way/" class="tag-link-41 tag-link-position-42" title="1 topic" style="font-size: 1em;">The Pixar Way</a>
+<a href="http://mikehillyer.com/tag/town-country/" class="tag-link-46 tag-link-position-43" title="1 topic" style="font-size: 1em;">Town &amp; Country</a>
+<a href="http://mikehillyer.com/tag/traffic-shaping/" class="tag-link-27 tag-link-position-44" title="2 topics" style="font-size: 1em;">traffic shaping</a>
+<a href="http://mikehillyer.com/tag/twilio/" class="tag-link-23 tag-link-position-45" title="1 topic" style="font-size: 1em;">twilio</a></div>
+</section><section id="recent-comments-3" class="widget widget_recent_comments"><h2 class="widget-title">Recent Comments</h2><ul id="recentcomments"><li class="recentcomments"><span class="comment-author-link"><a href="http://mikehillyer.com/about-me/" rel="external nofollow" class="url">Mike Hillyer</a></span> on <a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-304858">Managing Hierarchical Data in MySQL</a></li><li class="recentcomments"><span class="comment-author-link"><a href="http://programacaoelinux.com.br/" rel="external nofollow" class="url">Jeff</a></span> on <a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-304856">Managing Hierarchical Data in MySQL</a></li><li class="recentcomments"><span class="comment-author-link">Vahid</span> on <a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-304644">Managing Hierarchical Data in MySQL</a></li><li class="recentcomments"><span class="comment-author-link">Vahid</span> on <a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-304607">Managing Hierarchical Data in MySQL</a></li><li class="recentcomments"><span class="comment-author-link">Programmer</span> on <a href="http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/#comment-304010">Managing Hierarchical Data in MySQL</a></li></ul></section><section id="text-5" class="widget widget_text"><h2 class="widget-title">More Monetization!</h2>			<div class="textwidget"><script async="" src="http://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- New Side -->
+<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-2660766695269970" data-ad-slot="5232370676" data-ad-format="auto"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script></div>
+		</section>	</aside><!-- .sidebar .widget-area -->
+
+		</div><!-- .site-content -->
+
+		<footer id="colophon" class="site-footer" role="contentinfo">
+							<nav class="main-navigation" role="navigation" aria-label="Footer Primary Menu">
+					<div class="menu-top-container"><ul id="menu-top-1" class="primary-menu"><li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-351"><a href="http://mikehillyer.com/about-me/">About Me</a></li>
+</ul></div>				</nav><!-- .main-navigation -->
+			
+			
+			<div class="site-info">
+								<span class="site-title"><a href="http://mikehillyer.com/" rel="home">Mike Hillyer's Personal Webspace</a></span>
+				<a href="https://wordpress.org/">Proudly powered by WordPress</a>
+			</div><!-- .site-info -->
+		</footer><!-- .site-footer -->
+	</div><!-- .site-inner -->
+</div><!-- .site -->
+
+<script type="text/javascript" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/form.js"></script>
+<script type="text/javascript" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/skip-link-focus-fix.js"></script>
+<script type="text/javascript" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/comment-reply.min.js"></script>
+<script type="text/javascript">
+/* <![CDATA[ */
+var screenReaderText = {"expand":"expand child menu","collapse":"collapse child menu"};
+/* ]]> */
+</script>
+<script type="text/javascript" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/functions.js"></script>
+<script type="text/javascript" src="./Managing Hierarchical Data in MySQL — Mike Hillyer&#39;s Personal Webspace_files/wp-embed.min.js"></script>
+
+
+</body></html>

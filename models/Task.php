@@ -46,9 +46,9 @@ class Task extends ContentActiveRecord implements \humhub\modules\search\interfa
         return array(
             [['title'], 'required'],
             [['description'], 'string'],
-            [['max_users', 'percent'], 'integer'],
+            [['max_users'], 'integer'],
             [['deadline'], \humhub\libs\DbDateValidator::className(), 'format' => Yii::$app->params['formatter']['defaultDateFormat']],
-            [['max_users', 'assignedUserGuids', 'description'], 'safe'],
+            [['max_users', 'assignedUserGuids', 'description', 'percent'], 'safe'],
         );
     }
 
@@ -116,6 +116,21 @@ class Task extends ContentActiveRecord implements \humhub\modules\search\interfa
                 $this->unassignUser($user);
             }
         }
+        // Ajout de la tâche dans le calendrier (test)
+				/*
+				$date = $this->deadline;
+				$taskCal = new CalendarEntry();
+				$taskCal->title = $this->title;
+				$taskCal->description = $this->description;
+				$taskCal->start_datetime = $this->deadline;
+				$taskCal->end_datetime = $date->add(new DateInterval('P1D'));
+				$date=$taskCal->end_datetime;
+				$taskCal->end_datetime = $date->sub(new DateInterval('P1S'));
+				$taskCal->all_day = 1;
+				$taskCal->participation_mode = 0;
+				// sauvegarde de la tâche
+				$taskCal->save();
+			*/
     }
 
     public function afterFind()

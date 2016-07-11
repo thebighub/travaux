@@ -38,14 +38,17 @@ use yii\helpers\Url;
             <p class="help-block"><?php echo 'Vous pouvez utiliser la syntaxe Markdown #niceandsweet'; ?></p>
 
 			</div>
+			<?php if (Yii::$app->request->get('id') != null && $parent == 0) : ?>
 			<div class="form-group">
 				<?php echo $form->field($task, 'percent')->widget(\yii\jui\SliderInput::classname(), [
 					'clientOptions' => [
 						'min' => 0,
 						'max' => 100,
-    ],
-]) ?>
+						'value' => 0,
+					],
+				]) ?>
 			</div>
+			<?php endif; ?>
             <div class="row">
                 <div class="col-md-8">
 

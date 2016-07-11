@@ -25,6 +25,35 @@ humhub\modules\tasks\Assets::register($this);
 							$niveau = $profondeur['depth'];
 							// Marge gauche de 25 px pour chaque niveau de sous-tache
 							$marge = 25 * $niveau; 
+				// Calcul de la somme de la progression des sous-tâches directes : 
+				if($niveau == 0){$progression = Yii::$app->db->createCommand(
+								'SELECT node.title, (COUNT(parent.title) - (sub_tree.depth + 1)) as depth,node.percent AS progression
+								FROM task AS node,
+										task AS parent,
+										task AS sub_parent,
+										(
+												SELECT node.title, (COUNT(parent.title) - 1) AS depth
+												FROM task AS node,
+														task AS parent
+												WHERE node.gauche BETWEEN parent.gauche AND parent.droite
+														AND node.id = ' . $task->id . ' 
+												GROUP BY node.id
+												ORDER BY node.gauche
+										)AS sub_tree
+								WHERE node.gauche BETWEEN parent.gauche AND parent.droite
+										AND node.gauche BETWEEN sub_parent.gauche AND sub_parent.droite
+										AND sub_parent.title = sub_tree.title
+								GROUP BY node.id
+								HAVING depth = 1
+								ORDER BY node.gauche')->queryAll();
+					$cpt=0;$progTacheMere=0;
+					foreach ($progression as $progr) {
+							$cpt++;
+							$progTacheMere+=$progr['progression'];
+						}
+					if ($cpt!=0)
+					$progTacheMere/=$cpt;
+				}
                  if ($task->status == Task::STATUS_OPEN) : ?>
                     <div class="media task" id="task_<?php echo $task->id; ?>" style="margin-left:<?php echo $marge; ?>px">
 
@@ -41,10 +70,14 @@ humhub\modules\tasks\Assets::register($this);
                         ?>
 
 						<!-- Bouton pour terminer la tâche -->
+						<?php if($niveau==0) 
+								$messageTask = 'task'; 
+							  else 
+							    $messageTask = 'subtask'; ?>
                         <div class="open-check">
                             <?php
                             echo \humhub\widgets\AjaxButton::widget([
-                                'label' => '<div class="tasks-check tt pull-left" style="margin-right: 0;" data-toggle="tooltip" data-placement="top" data-original-title="' . Yii::t("TasksModule.widgets_views_entry", "Click, to finish this task") . '"><i class="fa fa-square-o task-check"> </i></div>',
+                                'label' => '<div class="tasks-check tt pull-left" style="margin-right: 0;" data-toggle="tooltip" data-placement="top" data-original-title="' . Yii::t("TasksModule.widgets_views_entry", "Click, to finish this ".$messageTask."")  . '"><i class="fa fa-square-o task-check"> </i></div>',
                                 'tag' => 'a',
                                 'ajaxOptions' => [
                                     'dataType' => "json",
@@ -58,7 +91,7 @@ humhub\modules\tasks\Assets::register($this);
                             ]);
                             ?>
                         </div>
-						
+						<!-- Bouton pour ré-ouvrir la tâche -->
                         <div class="completed-check hidden">
                             <?php
                             echo \humhub\widgets\AjaxButton::widget([
@@ -84,24 +117,41 @@ humhub\modules\tasks\Assets::register($this);
                             <?php if ($task->hasDeadline()) : ?>
                                 <?php
                                 $timestamp = strtotime($task->deadline);
-                                $class = "label label-default";
+                                $date=new DateTime(date("d.m.yy", $timestamp));
+                                $ajd=new DateTime(date("d.m.yy", time()));
+                                $class = "label label-success";if ($date <= $ajd->add(new DateInterval('P1W'))) {
+									$class = "label label-warning";
+								}
+                                
                                 if (date("d.m.yy", $timestamp) <= date("d.m.yy", time())) {
                                     $class = "label label-danger";
                                 }
                                 ?>
-                                <span class="<?php echo $class; ?>"><?php echo date("d. M", $timestamp); ?></span>
+                                <span class="<?php echo $class; ?>"><?php echo '<i class="fa fa-clock-o"></i>  ' . date("d. M", $timestamp); ?></span>
                             <?php endif; ?>
-							<?php // Bouton pour afficher la description 
-								if($task->description != null || $task->percent > 0) :
-							?>
-							<?php if($task->description != null) $message='Afficher/Masquer description';else $message='Afficher/Masquer progression'; ?>
-							<a data-toggle="collapse" class="tt"
+							 
+							<?php // Bouton pour afficher la description
+								if($task->description != null) :
+							
+								  $message='Afficher/Masquer description';  ?>
+							<a data-toggle="collapse" class="tt"  onclick="changeOeil(<?php echo $task->id; ?>)"
                                    href="#bloc_description_<?php echo $task->id; ?>"
                                    onclick="$('#bloc_description_<?php echo $task->id; ?>').show();return false;"
                                    aria-expanded="false" data-toggle="tooltip"
                                    data-placement="top" data-original-title="<?php echo $message; ?>"
-                                   ><i
+                                   ><i id="btnOeil_<?php echo $task->id;?>"
                                         class="fa fa-eye"></i> 
+                                </a>
+                            <?php endif; ?>
+                            <?php if($task->percent != 0) :
+							
+								  $message='Afficher/Masquer progression';  ?>
+							<a data-toggle="collapse" class="tt"  onclick="affichPercent(<?php echo $task->id; ?>);"
+                                   href="#progress_<?php echo $task->id; ?>"
+                                   onclick="$('#progress_<?php echo $task->id; ?>').show();return false;"
+                                   aria-expanded="false" data-toggle="tooltip"
+                                   data-placement="top" data-original-title="<?php echo $message; ?>"
+                                   ><i class="fa fa-percent" id="percent_<?php echo $task->id; ?>"></i> 
                                 </a>
                             <?php endif; ?>
                             <div class="task-controls end pull-right">
@@ -129,13 +179,16 @@ humhub\modules\tasks\Assets::register($this);
                             </div>
 							<!-- Bouton pour afficher les commentaires -->
                             <div class="task-controls pull-right">
-
+							<?php $count = Comment::GetCommentCount($task->className(), $task->id);
+							if ($count==0) $classCount='fa fa-commenting-o'; 
+							else if($count==1) $classCount='fa fa-comment-o';
+						    else $classCount='fa fa-comments-o'; ?>
                                 <a data-toggle="collapse"
                                    href="#task-comment-<?php echo $task->id; ?>"
                                    onclick="$('#comment_humhubmodulestasksmodelsTask_<?php echo $task->id; ?>').show();return false;"
                                    aria-expanded="false"
                                    aria-controls="collapseTaskComments"><i
-                                        class="fa fa-comment-o"></i> <?php echo $count = Comment::GetCommentCount($task->className(), $task->id); ?>
+                                        class="<?php echo $classCount; ?>"></i> <?php echo $count ; ?>
                                 </a>
 
                             </div>
@@ -155,11 +208,14 @@ humhub\modules\tasks\Assets::register($this);
                                 <?php endforeach; ?>
                             </div>
                             <!-- Ajout du bouton sous-tâche -->
+                            <?php if ($niveau==0) 
+										$messageT = 'Ajouter sous-tâche'; 
+								  else  $messageT = 'Ajouter sous-sous-tâche'; ?>
 							<div class="task-controls pull-right">
 								<a href="<?php echo $contentContainer->createUrl('edit', ['id' => null,'parent' => $task->id]); ?>"
                                    class="tt"
                                    data-target="#globalModal" data-toggle="tooltip"
-                                   data-placement="top" data-original-title="Ajouter sous-tâche"><i class="fa fa-plus"></i></a>
+                                   data-placement="top" data-original-title="<?php echo $messageT; ?>"><i class="fa fa-plus"></i></a>
 							</div>
 							
                             <div class="clearfix"></div>
@@ -167,27 +223,33 @@ humhub\modules\tasks\Assets::register($this);
                         </div>
                         <!-- Bloc description (masqué par défaut, visible en cliquant sur l'oeil) -->
 						<div class="media-body description">
-							<div class="collapse" id="bloc_description_<?php echo $task->id; ?>">
+							
 							<!-- Barre de progression -->
-							<?php $prog = $task->percent; 
+							<?php if($niveau!=0)$prog = $task->percent; else $prog=$progTacheMere;
 								if ($prog <= 25)
-									$class='progress-bar-danger';
+									$classProg='progress-bar-danger';
 								else if ($prog>25 && $prog<= 50)
-									$class='progress-bar-warning';
+									$classProg='progress-bar-warning';
 								else if ($prog>50 && $prog<= 75)
-									$class='progress-bar-info';
+									$classProg='progress-bar-info';
 								else if ($prog>75) 
-									$class='progress-bar-success';
-								else $class='progress-bar';
+									$classProg='progress-bar-success';
+								else $classProg='progress-bar';
 																					
 								?>
-							Progression :
+							<div id="progress_<?php echo $task->id;  ?>" class="collapse">
 							<div class="progress" style="height:15px;line-height:15px;">
-							  <div class="<?php echo $class; ?>" role="progressbar" aria-valuenow="<?php echo $prog; ?>"
+							
+							  <div class="<?php echo $classProg; ?>" role="progressbar" aria-valuenow="<?php echo $prog; ?>"
 							  aria-valuemin="0" aria-valuemax="100" style="width:<?php echo $prog; ?>%">
 								<div style="text-align:center"><?php echo $prog; ?>%</div>
 							  </div>
 							</div>
+							</div>
+							<div class="collapse" id="bloc_description_<?php echo $task->id; ?>">
+							
+							
+							
 								<?php echo humhub\widgets\MarkdownView::widget(array('markdown' => $task->description)); ?>
 							</div>
 						</div>
@@ -295,12 +357,18 @@ humhub\modules\tasks\Assets::register($this);
                                 <?php
                                 $timestamp = strtotime($task->deadline);
                                 $class = "label label-default";
+                                
+                                if ($date <= $ajd->add(new DateInterval('P1W'))) {
+									$class = "label label-warning";
+								}
                                 if (date("d.m.yy", $timestamp) <= date("d.m.yy", time())) {
                                     $class = "label label-danger";
-                                }
+								}
+                                
+                                
                                 ?>
                                 <span
-                                    class="<?php echo $class; ?> task-completed-controls"><?php echo date("d. M", $timestamp); ?></span>
+                                    class="<?php echo $class; ?> task-completed-controls"><?php echo '<i class="fa fa-clock-o"></i>' . date("d. M", $timestamp); ?></span>
                                 <?php endif; ?>
 
 
@@ -335,7 +403,7 @@ humhub\modules\tasks\Assets::register($this);
                                    onclick="$('#comment_humhubmodulestasksmodelsTask_<?php echo $task->id; ?>').show();return false;"
                                    aria-expanded="false"
                                    aria-controls="collapseTaskComments"><i
-                                        class="fa fa-comment-o"></i> <?php echo $count = Comment::GetCommentCount($task->className(), $task->id); ?>
+                                        class="<?php echo $classCount; ?>"></i> <?php echo $count; ?>
                                 </a>
 
                             </div>
@@ -386,7 +454,7 @@ humhub\modules\tasks\Assets::register($this);
     var _id = <?php echo (int) Yii::$app->request->get('id'); ?>;
     var _completedTaskCount = <?php echo $completedTaskCount; ?>;
     var _completedTaskButtonText = "<?php echo Yii::t('TasksModule.views_task_show', 'completed tasks'); ?>";
-
+	
     if (_id > 0) {
         $('#task_' + _id).addClass('highlight');
         $('#task_' + _id).animate({
@@ -429,7 +497,14 @@ humhub\modules\tasks\Assets::register($this);
         }
 
     }
-
+    // Fonction pour afficher la barre sur l'oeil
+	function changeOeil(id) {
+			$('#btnOeil_' + id).toggleClass('fa-eye-slash fa-eye');
+	}
+	// Fonction pour faire passer le signe '%' en rouge
+	function affichPercent(id) {
+			$('#percent_' + id).toggleClass('rouge');
+	}
     $(document).ready(function () {
         handleCompletedTasks();
     });

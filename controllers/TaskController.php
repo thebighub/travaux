@@ -6,6 +6,8 @@ use Yii;
 use yii\web\HttpException;
 use humhub\modules\content\components\ContentContainerController;
 use humhub\modules\tasks\models\Task;
+use humhub\modules\calendar\models\CalendarEntry;
+use humhub\modules\calendar\models\CalendarEntryParticipant;
 
 class TaskController extends ContentContainerController
 {
@@ -72,8 +74,13 @@ class TaskController extends ContentContainerController
 					
 				// on spécifie que cette tâche appartient au contentContainer
 				$task->content->container = $this->contentContainer;
+				
+				
+			}
+				
+							
 			
-        }
+        
         
 		/* Ajout d'une sous-tâche de niveau 1 */
 		
@@ -251,7 +258,38 @@ class TaskController extends ContentContainerController
 				->orderBy('node.gauche')
 				->one();
 				$marge = 25 * $profondeur; 
-				echo "prof : " . $profondeur['depth']; */
+				echo "prof : " . $profondeur['depth']; 
+				* 
+				* Validation date de fin de sous-tâche: 
+				* public function validateEndTime($attribute, $params)
+    {
+        if (new \DateTime($this->start_datetime) >= new \DateTime($this->end_datetime)) {
+            $this->addError($attribute, Yii::t('CalendarModule.base', "End time must be after start time!"));
+        }
+        * 
+        * 
+        *    Récupérer les enfants directs d'un noeud : 
+        * 
+        * SELECT node.title, (COUNT(parent.title) - (sub_tree.depth + 1)) as depth,node.percent AS progression
+			FROM task AS node,
+					task AS parent,
+					task AS sub_parent,
+					(
+							SELECT node.title, (COUNT(parent.title) - 1) AS depth
+							FROM task AS node,
+									task AS parent
+							WHERE node.gauche BETWEEN parent.gauche AND parent.droite
+									AND node.id = 3
+							GROUP BY node.id
+							ORDER BY node.gauche
+					)AS sub_tree
+			WHERE node.gauche BETWEEN parent.gauche AND parent.droite
+					AND node.gauche BETWEEN sub_parent.gauche AND sub_parent.droite
+					AND sub_parent.title = sub_tree.title
+			GROUP BY node.id
+			HAVING depth = 1
+			ORDER BY node.gauche
+    }*/
 	
 	
 }

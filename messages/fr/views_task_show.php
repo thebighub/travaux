@@ -4,7 +4,7 @@ return array (
   'Add Task' => 'Ajouter une tâche',
   'Cancel' => 'Annuler',
   'Delete' => 'Effacer',
-  'Do you really want to delete this task?' => 'Vouhaitez-vous vraiment supprimer cette tâche ?',
+  'Do you really want to delete this task?' => 'Souhaitez-vous vraiment supprimer cette tâche ?',
   'No open tasks...' => 'Pas de tâches en cours ...',
   'completed tasks' => 'tâche(s) terminée(s)',
 );

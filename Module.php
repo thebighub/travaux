@@ -77,7 +77,7 @@ class Module extends ContentContainerModule
 
     public static function onDashboardSidebarInit($event)
     {
-        $event->sender->addWidget(widgets\MyTasks::className(), array(), array('sortOrder' => 600));
+        $event->sender->addWidget(widgets\MyTasks::className(), array(), array('sortOrder' => 200));
     }
 
     /**

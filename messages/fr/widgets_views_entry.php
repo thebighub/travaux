@@ -17,6 +17,7 @@
  * NOTE: this file must be saved in UTF-8 encoding.
  */
 return [
-    'Click, to finish this task' => 'Cliquer, pour finir la tâche',
+    'Click, to finish this task' => 'Terminer la tâche',
+    'Click, to finish this subtask' => 'Terminer la sous-tâche',
     'This task is already done. Click to reopen.' => 'Cette tâche est déjà faite. Cliquer pour ré-ouvrir.',
 ];
