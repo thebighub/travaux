@@ -16,19 +16,24 @@ class TaskController extends ContentContainerController
 
     public function actionShow()
     {
-
+		$tim = 'Tim';
         $tasks = Task::find()->contentContainer($this->contentContainer)->readable()->orderBy(['gauche'=>SORT_ASC])->all();
         $completedTaskCount = Task::find()->contentContainer($this->contentContainer)->readable()->where(['task.status' => 5])->count();
         $canCreateNewTasks = $this->contentContainer->permissionManager->can(new \humhub\modules\tasks\permissions\CreateTask());
         // A créer : profondeur -> niveau de la sous-tâche
         
         //           subtaskcount -> nombre d'enfants
+ 
+			
+																		
+								
         // Variables envoyées à la page views/tasks/show.php :
         return $this->render('show', [
             'tasks' => $tasks,
             'completedTaskCount' => $completedTaskCount,
             'contentContainer' => $this->contentContainer,
-            'canCreateNewTasks' => $canCreateNewTasks
+            'canCreateNewTasks' => $canCreateNewTasks,
+            
         ]);
 
 
@@ -60,6 +65,8 @@ class TaskController extends ContentContainerController
 				$maxDroite = $derniereTache->droite;
 				// on crée un nouvel objet 'tâche'
 				$task = new Task();
+				// on crée un nouvel objet 'entrée de calendrier'
+				
 				// on passe son statut à 1 (1 = en cours, 5 = terminé)
 				$task->status = 1;
 				// si la dernière tâche n'existe pas (si c'est la première insertion dans la table)
@@ -74,6 +81,7 @@ class TaskController extends ContentContainerController
 					
 				// on spécifie que cette tâche appartient au contentContainer
 				$task->content->container = $this->contentContainer;
+				
 				
 				
 			}
@@ -95,10 +103,6 @@ class TaskController extends ContentContainerController
 				$task = new Task();
 				$task->status = 1 ; // en cours
 				
-				
-				//$task->save();
-				
-				
 				// on précise le content container
 				$task->content->container = $this->contentContainer;
 				//  On augmente toutes la droite de la tache mère de 2
@@ -117,6 +121,24 @@ class TaskController extends ContentContainerController
 					if($parent!=null){
 					// On sauvegarde la modification de la tache mère
 						$tacheMere->save();
+						
+
+				/* Test d'insertion de la tâche dans la table CalendarEntry -> marche pas
+				 * 
+				 * $calendarEntry->validate();
+				$calendarEntry = new CalendarEntry;
+				$calendarEntry->content->container = $this->contentContainer;
+				$calendarEntry->start_time = '00:00';
+				$calendarEntry->end_time = '23:59';
+				$calendarEntry->all_day = 1;
+				$calendarEntry->participation_mode = 0;
+				$calendarEntry->title = $task->title;
+				$calendarEntry->description = $task->description;
+				$calendarEntry->start_datetime = $task->deadline;
+				$calendarEntry->end_datetime = $task->deadline;
+				$calendarEntry->start_datetime = preg_replace('/\d{2}:\d{2}:\d{2}$/', '', $calendarEntry->start_datetime);
+				$calendarEntry->end_datetime = preg_replace('/\d{2}:\d{2}:\d{2}$/', '', $calendarEntry->end_datetime);
+				$calendarEntry->save();*/ 
 				}
                     return $this->htmlRedirect($this->contentContainer->createUrl('show'));
                 }
@@ -132,11 +154,25 @@ class TaskController extends ContentContainerController
     public function actionDelete() {
 		// On récupère l'id de la tâche
         $id = (int) Yii::$app->request->get('id');
-
+	
         if ($id != 0) {
             $task = Task::find()->contentContainer($this->contentContainer)->where(['task.id' => $id])->one();
             if ($task) {
-                $task->delete();
+				
+				$droite = $task->droite;
+				$gauche = $task->gauche;
+				$largeur = $droite - $gauche + 1;
+				
+				$tasksToDelete = Task::find()->contentContainer($this->contentContainer)->where(['between','task.gauche',$task->gauche,$task->droite])->all();
+				if ($tasksToDelete) {
+					foreach ($tasksToDelete as $tasky) {
+						$tasky->delete();
+					}
+				Task::updateAllCounters(['droite' => -$largeur], 'droite > ' . $droite);
+				Task::updateAllCounters(['gauche' => -$largeur], 'gauche > ' . $droite);
+
+				}
+				else $task->delete();
             }
         }
 
@@ -193,6 +229,7 @@ class TaskController extends ContentContainerController
         }
         return $task;
     }
+    
 	/* Récupérer une tâche et ses sous-tâches : 
 	SELECT noeud.title
 	FROM task AS noeud, task AS parent
@@ -289,6 +326,25 @@ class TaskController extends ContentContainerController
 			GROUP BY node.id
 			HAVING depth = 1
 			ORDER BY node.gauche
+			* 
+			* 
+			*   SUPPRESSION 
+			*   ===========
+			* 
+			* LOCK TABLE nested_category WRITE;
+
+			SELECT @myLeft := lft, @myRight := rgt, @myWidth := rgt - lft + 1
+			FROM nested_category
+			WHERE name = 'MP3 PLAYERS';
+
+			DELETE FROM nested_category WHERE lft BETWEEN @myLeft AND @myRight;
+
+			UPDATE nested_category SET rgt = rgt - @myWidth WHERE rgt > @myRight;
+			UPDATE nested_category SET lft = lft - @myWidth WHERE lft > @myRight;
+
+			UNLOCK TABLES;
+			* 
+			* 
     }*/
 	
 	

@@ -44,7 +44,7 @@ humhub\modules\tasks\Assets::register($this);
 										AND node.gauche BETWEEN sub_parent.gauche AND sub_parent.droite
 										AND sub_parent.title = sub_tree.title
 								GROUP BY node.id
-								HAVING depth = 1
+								HAVING depth >= 1
 								ORDER BY node.gauche')->queryAll();
 					$cpt=0;$progTacheMere=0;
 					foreach ($progression as $progr) {
@@ -113,7 +113,7 @@ humhub\modules\tasks\Assets::register($this);
 						<!-- titre et heading du bloc tâche -->
                         <div class="media-heading">
                             <span class="task-title pull-left"><?php echo $task->title; ?></span>
-
+							
                             <?php if ($task->hasDeadline()) : ?>
                                 <?php
                                 $timestamp = strtotime($task->deadline);
@@ -223,26 +223,67 @@ humhub\modules\tasks\Assets::register($this);
                         </div>
                         <!-- Bloc description (masqué par défaut, visible en cliquant sur l'oeil) -->
 						<div class="media-body description">
-							
 							<!-- Barre de progression -->
-							<?php if($niveau!=0)$prog = $task->percent; else $prog=$progTacheMere;
-								if ($prog <= 25)
-									$classProg='progress-bar-danger';
-								else if ($prog>25 && $prog<= 50)
-									$classProg='progress-bar-warning';
-								else if ($prog>50 && $prog<= 75)
-									$classProg='progress-bar-info';
-								else if ($prog>75) 
-									$classProg='progress-bar-success';
-								else $classProg='progress-bar';
-																					
-								?>
+							<?php
+							 $profondeur = Yii::$app->db->createCommand('SELECT node.title, (COUNT(parent.id) - 1) AS depth
+							FROM task AS node,
+									task AS parent
+							WHERE node.gauche BETWEEN parent.gauche AND parent.droite
+							AND node.id=' . $task->id . ' 
+							GROUP BY node.id
+							ORDER BY node.gauche;')->queryOne();
+							
+							$niveau = $profondeur['depth'];
+							// Marge gauche de 25 px pour chaque niveau de sous-tache
+							$marge = 25 * $niveau; 
+				// Calcul de la somme de la progression des sous-tâches directes : 
+				if($niveau == 0){$progression = Yii::$app->db->createCommand(
+						'SELECT node.title, (COUNT(parent.title) - (sub_tree.depth + 1)) as depth,node.percent AS progression
+						FROM task AS node,
+								task AS parent,
+								task AS sub_parent,
+								(
+										SELECT node.title, (COUNT(parent.title) - 1) AS depth
+										FROM task AS node,
+												task AS parent
+										WHERE node.gauche BETWEEN parent.gauche AND parent.droite
+												AND node.id = ' . $task->id . ' 
+										GROUP BY node.id
+										ORDER BY node.gauche
+								)AS sub_tree
+						WHERE node.gauche BETWEEN parent.gauche AND parent.droite
+								AND node.gauche BETWEEN sub_parent.gauche AND sub_parent.droite
+								AND sub_parent.title = sub_tree.title
+						GROUP BY node.id
+						HAVING depth >= 1
+						ORDER BY node.gauche')->queryAll();
+						$cpt=0;$progTacheMere=0;
+						foreach ($progression as $progr) {
+								$cpt++;
+								$progTacheMere+=$progr['progression'];
+							}
+						if ($cpt!=0)
+						$progTacheMere/=$cpt;
+					}
+							if($niveau!=0)$prog = $task->percent; 
+							else $prog=$progTacheMere;
+							if ($prog <= 25)
+								$classProg='progress-bar-danger';
+							else if ($prog>25 && $prog<= 50)
+								$classProg='progress-bar-warning';
+							else if ($prog>50 && $prog<= 75)
+								$classProg='progress-bar-info';
+							else if ($prog>75) 
+								$classProg='progress-bar-success';
+							else $classProg='progress-bar';
+		
+							?>
 							<div id="progress_<?php echo $task->id;  ?>" class="collapse">
 							<div class="progress" style="height:15px;line-height:15px;">
 							
 							  <div class="<?php echo $classProg; ?>" role="progressbar" aria-valuenow="<?php echo $prog; ?>"
 							  aria-valuemin="0" aria-valuemax="100" style="width:<?php echo $prog; ?>%">
-								<div style="text-align:center"><?php echo $prog; ?>%</div>
+								<div style="text-align:center"><?php echo number_format($prog,0); ?>%</div>
 							  </div>
 							</div>
 							</div>
