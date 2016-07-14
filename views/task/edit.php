@@ -2,7 +2,6 @@
 use yii\bootstrap\ActiveForm;
 use yii\helpers\Html;
 use yii\helpers\Url;
-//use yii\jui\SliderInput;
 ?>
 
 <div class="modal-dialog modal-dialog-normal animated fadeIn">
@@ -38,17 +37,19 @@ use yii\helpers\Url;
             <p class="help-block"><?php echo 'Vous pouvez utiliser la syntaxe Markdown #niceandsweet'; ?></p>
 
 			</div>
-			<?php if (Yii::$app->request->get('id') != null && $parent == 0) : ?>
+			
+			<?php if (Yii::$app->request->get('id') != null && $task->getChildrenNumber()==0) : ?>
 			<div class="form-group">
 				<?php echo $form->field($task, 'percent')->widget(\yii\jui\SliderInput::classname(), [
 					'clientOptions' => [
 						'min' => 0,
 						'max' => 100,
-						'value' => 0,
+						'value' => $task->percent,
 					],
 				]) ?>
 			</div>
 			<?php endif; ?>
+			
             <div class="row">
                 <div class="col-md-8">
 
@@ -60,6 +61,7 @@ use yii\helpers\Url;
                         'model' => $task,
                         'inputId' => 'assignedUserGuids',
                         'attribute' => 'assignedUserGuids',
+                        //'filter' => 'keyword',
                         'userSearchUrl' => $this->context->contentContainer->createUrl('/space/membership/search', array('keyword' => '-keywordPlaceholder-')),
                         'maxUsers' => 10,
                         'placeholderText' => Yii::t('TasksModule.views_task_edit', 'Assign users'),
@@ -118,3 +120,4 @@ use yii\helpers\Url;
     });
 
 </script>
+<!-- script pour le slider -->

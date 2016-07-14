@@ -6,7 +6,18 @@
     padding-bottom: 4px;
     border-bottom: 1px solid #eee;
 }
-
+.description {
+	padding-left: 25px;
+}
+.rouge {
+color: #ac2222;
+}
+i.task-check:hover {
+	color: green;
+	transition: 1s;
+}
+i.task-check {
+transition: 1s;}
 .task-entry {
     padding-top: 6px;
     padding-left: 8px;

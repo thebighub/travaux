@@ -231,7 +231,67 @@ class Task extends ContentActiveRecord implements \humhub\modules\search\interfa
         }
         return false;
     }
-
+    /* La tâche a-t-elle des enfants ? */
+    public function hasChild()
+    {	$nbEnfants = Yii::$app->db->createCommand('SELECT COUNT(*) FROM task WHERE task.gauche BETWEEN ' . $this->gauche . ' AND ' . $this->droite)->queryOne();
+		if ($nbEnfants > 1) {
+		return true;
+		}
+		else return false;
+	}
+	public function getChildrenNumber()
+	{
+		$nbEnfants = Yii::$app->db->createCommand('SELECT COUNT(*) as compte FROM task WHERE task.gauche BETWEEN ' . $this->gauche . ' AND ' . $this->droite)->queryOne();
+		return $nbEnfants['compte']-1;
+	}
+	/* Récupération du niveau de la tâche */
+	public function getNiveau()
+	{
+		$profondeur = Yii::$app->db->createCommand('SELECT node.title, (COUNT(parent.id) - 1) AS depth
+							FROM task AS node,
+									task AS parent
+							WHERE node.gauche BETWEEN parent.gauche AND parent.droite
+							AND node.id=' . $this->id . ' 
+							GROUP BY node.id
+							ORDER BY node.gauche;')->queryOne();
+							
+							$niveau = $profondeur['depth'];
+		return $niveau;
+	}
+	/* Récupération de la progression pour les tâches mères */
+	public function getProgressionTacheMere()
+	{
+		$progression = Yii::$app->db->createCommand(
+								'SELECT node.title, (COUNT(parent.title) - (sub_tree.depth + 1)) as depth,node.percent AS progression
+								FROM task AS node,
+										task AS parent,
+										task AS sub_parent,
+										(
+												SELECT node.title, (COUNT(parent.title) - 1) AS depth
+												FROM task AS node,
+														task AS parent
+												WHERE node.gauche BETWEEN parent.gauche AND parent.droite
+														AND node.id = ' . $this->id . ' 
+												GROUP BY node.id
+												ORDER BY node.gauche
+										)AS sub_tree
+								WHERE node.gauche BETWEEN parent.gauche AND parent.droite
+										AND node.gauche BETWEEN sub_parent.gauche AND sub_parent.droite
+										AND sub_parent.title = sub_tree.title
+								GROUP BY node.id
+								HAVING depth = 1
+								ORDER BY node.gauche')->queryAll();
+					$cpt=0;$progTacheMere=0;
+					foreach ($progression as $progr) {
+							$cpt++;
+							$progTacheMere+=$progr['progression'];
+						}
+					if ($cpt!=0) {
+					$progTacheMere/=$cpt;
+					return $progTacheMere;
+					}
+					else return 0;
+	}
     public static function GetUsersOpenTasks()
     {
         $query = self::find();

@@ -13,62 +13,34 @@ humhub\modules\tasks\Assets::register($this);
         <div id="open-tasks">
             <?php foreach ($tasks as $task) : ?>
 				<?php 
-				// Calcul du niveau de la tâche
-				 $profondeur = Yii::$app->db->createCommand('SELECT node.title, (COUNT(parent.id) - 1) AS depth
-							FROM task AS node,
-									task AS parent
-							WHERE node.gauche BETWEEN parent.gauche AND parent.droite
-							AND node.id=' . $task->id . ' 
-							GROUP BY node.id
-							ORDER BY node.gauche;')->queryOne();
-							
-							$niveau = $profondeur['depth'];
-							// Marge gauche de 25 px pour chaque niveau de sous-tache
-							$marge = 25 * $niveau; 
-				// Calcul de la somme de la progression des sous-tâches directes : 
-				if($niveau == 0){$progression = Yii::$app->db->createCommand(
-								'SELECT node.title, (COUNT(parent.title) - (sub_tree.depth + 1)) as depth,node.percent AS progression
-								FROM task AS node,
-										task AS parent,
-										task AS sub_parent,
-										(
-												SELECT node.title, (COUNT(parent.title) - 1) AS depth
-												FROM task AS node,
-														task AS parent
-												WHERE node.gauche BETWEEN parent.gauche AND parent.droite
-														AND node.id = ' . $task->id . ' 
-												GROUP BY node.id
-												ORDER BY node.gauche
-										)AS sub_tree
-								WHERE node.gauche BETWEEN parent.gauche AND parent.droite
-										AND node.gauche BETWEEN sub_parent.gauche AND sub_parent.droite
-										AND sub_parent.title = sub_tree.title
-								GROUP BY node.id
-								HAVING depth >= 1
-								ORDER BY node.gauche')->queryAll();
-					$cpt=0;$progTacheMere=0;
-					foreach ($progression as $progr) {
-							$cpt++;
-							$progTacheMere+=$progr['progression'];
-						}
-					if ($cpt!=0)
-					$progTacheMere/=$cpt;
-					
+				// On récupère le niveau de la tâche
+				$niveau = $task->getNiveau();
+				// Marge de 25 px pour chaque niveau 
+			    $marge = 25 * $niveau; 
+			    // On récupère le nombre de sous-tâches
+			    $nbEnfants = $task->getChildrenNumber();
+				/* Si la tâche a des sous-tâches, on récupère sa progression en calculant 
+				   la moyenne de la progression de ses sous-tâches directes  */
+				if($nbEnfants > 0){
+				$progTacheMere = $task->getProgressionTacheMere();
+				// Si la progression est différente de 0, on modifie le pourcentage de progression dans la base également
+				if ($progTacheMere != 0)
+				$task->changePercent($progTacheMere);
 				}
-				if($niveau!=0)$prog = $task->percent; 
-							else $prog=$progTacheMere;
-							if ($prog <= 25)
-								$classProg='progress-bar-danger';
-							else if ($prog>25 && $prog<= 50)
-								$classProg='progress-bar-warning';
-							else if ($prog>50 && $prog<= 75)
-								$classProg='progress-bar-info';
-							else if ($prog>75) 
-								$classProg='progress-bar-success';
-							else $classProg='progress-bar';
-		
+				if($nbEnfants == 0)
+					$prog = $task->percent; 
+				else $prog=$progTacheMere;
+				if ($prog <= 25)
+					$classProg='progress-bar-danger';
+				else if ($prog>25 && $prog<= 50)
+					$classProg='progress-bar-warning';
+				else if ($prog>50 && $prog<= 75)
+					$classProg='progress-bar-info';
+				else if ($prog>75) 
+					$classProg='progress-bar-success';
+				else $classProg='progress-bar';
 							
-                 if ($task->status == Task::STATUS_OPEN) : ?>
+                if ($task->status == Task::STATUS_OPEN) : ?>
                     <div class="media task" id="task_<?php echo $task->id; ?>" style="margin-left:<?php echo $marge; ?>px">
 
                         <?php
@@ -157,7 +129,7 @@ humhub\modules\tasks\Assets::register($this);
                                         class="fa fa-eye"></i> 
                                 </a>
                             <?php endif; ?>
-                            <?php if($task->percent != 0) :
+                            <?php if($task->percent != 0 || $prog != 0) :
 							
 								  $message='Afficher/Masquer progression';  ?>
 							<a data-toggle="collapse" class="tt"  onclick="affichPercent(<?php echo $task->id; ?>);"
@@ -501,7 +473,7 @@ humhub\modules\tasks\Assets::register($this);
     }
     // Fonction pour afficher la barre sur l'oeil
 	function changeOeil(id) {
-			$('#btnOeil_' + id).toggleClass('fa-eye-slash fa-eye');
+			$('#btnOeil_' + id).toggleClass('fa-eye-slash fa-eye rouge');
 	}
 	// Fonction pour faire passer le signe '%' en rouge
 	function affichPercent(id) {
