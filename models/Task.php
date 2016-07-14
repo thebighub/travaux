@@ -6,8 +6,7 @@ use Yii;
 use humhub\modules\user\models\User;
 use humhub\modules\content\components\ContentActiveRecord;
 use humhub\modules\tasks\models\TaskUser;
-use humhub\modules\calendar\models\CalendarEntry;
-use humhub\modules\calendar\models\CalendarEntryParticipant;
+
 /**
  * This is the model class for table "task".
  *

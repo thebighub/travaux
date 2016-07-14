@@ -6,8 +6,6 @@ use Yii;
 use yii\web\HttpException;
 use humhub\modules\content\components\ContentContainerController;
 use humhub\modules\tasks\models\Task;
-use humhub\modules\calendar\models\CalendarEntry;
-use humhub\modules\calendar\models\CalendarEntryParticipant;
 
 class TaskController extends ContentContainerController
 {
