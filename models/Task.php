@@ -117,6 +117,7 @@ class Task extends ContentActiveRecord implements \humhub\modules\search\interfa
                 $this->unassignUser($user);
             }
         }
+        
         // Ajout de la tâche dans le calendrier (test)
 				/*
 				$date = $this->deadline;

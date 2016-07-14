@@ -16,17 +16,10 @@ class TaskController extends ContentContainerController
 
     public function actionShow()
     {
-		$tim = 'Tim';
         $tasks = Task::find()->contentContainer($this->contentContainer)->readable()->orderBy(['gauche'=>SORT_ASC])->all();
         $completedTaskCount = Task::find()->contentContainer($this->contentContainer)->readable()->where(['task.status' => 5])->count();
         $canCreateNewTasks = $this->contentContainer->permissionManager->can(new \humhub\modules\tasks\permissions\CreateTask());
-        // A créer : profondeur -> niveau de la sous-tâche
-        
-        //           subtaskcount -> nombre d'enfants
- 
-			
-																		
-								
+		
         // Variables envoyées à la page views/tasks/show.php :
         return $this->render('show', [
             'tasks' => $tasks,
@@ -52,7 +45,7 @@ class TaskController extends ContentContainerController
 			$maGauche = $tacheMere->gauche;
 		}
 		
-		/* Création d'un nouveau travail */
+		/* Création d'une nouvelle tâche */
 		
         if ($task === null && $parent == null) {
 			
@@ -62,7 +55,7 @@ class TaskController extends ContentContainerController
 				}
 				// on récupère la valeur la plus haute de droite 
 				$derniereTache = Task::find()->contentContainer($this->contentContainer)->readable()->orderBy(['droite'=>SORT_DESC])->one();
-				$maxDroite = $derniereTache->droite;
+				
 				// on crée un nouvel objet 'tâche'
 				$task = new Task();
 				// on crée un nouvel objet 'entrée de calendrier'
@@ -74,23 +67,17 @@ class TaskController extends ContentContainerController
 					$task->gauche = 1;
 					$task->droite = 2;
 				} else { // Si on ajoute une nouvelle tâche, on adapte les valeurs de gauche et droite
+					$maxDroite = $derniereTache->droite;
 					$task->gauche = $derniereTache->droite + 1;
 					$task->droite = $task->gauche + 1;
 				}
 				
-					
 				// on spécifie que cette tâche appartient au contentContainer
 				$task->content->container = $this->contentContainer;
 				
-				
-				
 			}
 				
-							
-			
-        
-        
-		/* Ajout d'une sous-tâche de niveau 1 */
+		/* Ajout d'une sous-tâche */
 		
 		if ($task === null && $parent != null) {
 			
@@ -100,13 +87,14 @@ class TaskController extends ContentContainerController
 				if (!$this->contentContainer->permissionManager->can(new \humhub\modules\tasks\permissions\CreateTask())) {
 					throw new HttpException(400, 'Access denied!');
 				}
+				
 				$task = new Task();
 				$task->status = 1 ; // en cours
 				
 				// on précise le content container
 				$task->content->container = $this->contentContainer;
 				//  On augmente toutes la droite de la tache mère de 2
-				$tacheMere->droite = $maDroite + 2;
+				$tacheMere->droite += 2;
 				// La gauche de la sous tache prend la droite de la tache
 				$task->gauche = $maDroite;
 				// Sa droite prend sa gauche + 1
@@ -165,9 +153,11 @@ class TaskController extends ContentContainerController
 				
 				$tasksToDelete = Task::find()->contentContainer($this->contentContainer)->where(['between','task.gauche',$task->gauche,$task->droite])->all();
 				if ($tasksToDelete) {
+					// on supprime toutes les sous-tâches !
 					foreach ($tasksToDelete as $tasky) {
 						$tasky->delete();
 					}
+					// On met à jour les valeurs de gauche et droite 
 				Task::updateAllCounters(['droite' => -$largeur], 'droite > ' . $droite);
 				Task::updateAllCounters(['gauche' => -$largeur], 'gauche > ' . $droite);
 
