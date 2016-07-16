@@ -12,7 +12,15 @@ humhub\modules\tasks\Assets::register($this);
 		
         <div id="open-tasks">
             <?php foreach ($tasks as $task) : ?>
+                
 				<?php 
+				$soustaches=$task->getCheminComplet();
+				foreach($soustaches as $st) echo $st['id'];
+				// On récupère la date limite 
+				$datelimite=$task->getMotherDeadline();
+				$datelimite=strtotime($datelimite);
+				$datelimite=date("d M.", $datelimite);
+				
 				// On récupère le niveau de la tâche
 				$niveau = $task->getNiveau();
 				// Marge de 25 px pour chaque niveau 
@@ -142,7 +150,7 @@ humhub\modules\tasks\Assets::register($this);
                             <?php endif; ?>
                             <div class="task-controls end pull-right">
 								<!-- Bouton pour éditer le message -->
-                                <a href="<?php echo $contentContainer->createUrl('edit', ['id' => $task->id]); ?>"
+                                <a href="<?php echo $contentContainer->createUrl('edit', ['id' => $task->id,'datelimite'=>$datelimite]); ?>"
                                    class="tt"
                                    data-target="#globalModal" data-toggle="tooltip"
                                    data-placement="top" data-original-title="Modifier la <?php if($niveau>0)echo 'sous-';if($niveau>1)echo 'sous-';?>tâche"><i class="fa fa-pencil"></i></a>
@@ -198,10 +206,15 @@ humhub\modules\tasks\Assets::register($this);
 										$messageT = 'Ajouter sous-tâche'; 
 								  else  $messageT = 'Ajouter sous-sous-tâche'; ?>
 							<div class="task-controls pull-right">
-								<a href="<?php echo $contentContainer->createUrl('edit', ['id' => null,'parent' => $task->id]); ?>"
+
+								<a href="<?php echo $contentContainer->createUrl('edit', ['id' => null,'parent' => $task->id,'datelimite'=>$datelimite]); ?>"
                                    class="tt"
                                    data-target="#globalModal" data-toggle="tooltip"
                                    data-placement="top" data-original-title="<?php echo $messageT; ?>"><i class="fa fa-plus"></i></a>
+							</div>
+							<!-- Ajout du bouton 'Priorité' -->
+							<div class="task-controls pull-right">
+								<i class="fa fa-star-o" onclick="cacherSousTaches(<?php echo $task->id; ?>);"></i>
 							</div>
 							
                             <div class="clearfix"></div>
@@ -323,7 +336,7 @@ humhub\modules\tasks\Assets::register($this);
                             ]);
                             ?>
                         </div>
-
+						
 
                         <div class="media-body">
                             <span class="task-title task-completed pull-left"><?php echo $task->title; ?></span>
@@ -349,7 +362,7 @@ humhub\modules\tasks\Assets::register($this);
 
                             <div class="task-controls end pull-right">
 
-                                <a href="<?php echo $contentContainer->createUrl('edit', ['id' => $task->id]); ?>"
+                                <a href="<?php echo $contentContainer->createUrl('edit', ['id' => $task->id,'datelimite'=>$datelimite]); ?>"
                                    class="tt"
                                    data-target="#globalModal" data-toggle="tooltip"
                                    data-placement="top" data-original-title="Modifier la <?php if($niveau>0) echo 'sous-'; ?>tâche"><i class="fa fa-pencil"></i></a>
@@ -471,6 +484,7 @@ humhub\modules\tasks\Assets::register($this);
         }
 
     }
+    // AJOUTS
     // Fonction pour afficher la barre sur l'oeil
 	function changeOeil(id) {
 			$('#btnOeil_' + id).toggleClass('fa-eye-slash fa-eye rouge');
@@ -479,6 +493,16 @@ humhub\modules\tasks\Assets::register($this);
 	function affichPercent(id) {
 			$('#percent_' + id).toggleClass('rouge');
 	}
+	// Fonction pour remonter la tâche d'un rang : 
+	/*function remonterTache(id, parent) {
+		
+		$('#task_' + id).insertBefore('#task_' + parent);
+		}*/
+	// Fonction pour cacher les sous-tâches
+	function cacherSousTaches(id) {
+			
+			$('#task_' + id).addClass('hidden');
+		}
     $(document).ready(function () {
         handleCompletedTasks();
     });

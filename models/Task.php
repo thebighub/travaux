@@ -231,6 +231,56 @@ class Task extends ContentActiveRecord implements \humhub\modules\search\interfa
         }
         return false;
     }
+     public static function GetUsersOpenTasks()
+    {
+        $query = self::find();
+        $query->leftJoin('task_user', 'task.id=task_user.task_id');
+        $query->where(['task_user.user_id' => Yii::$app->user->id, 'task.status' => self::STATUS_OPEN]);
+
+        return $query->all();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getContentName()
+    {
+        return Yii::t('TasksModule.models_Task', "Task");
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getContentDescription()
+    {
+        return $this->title;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getSearchAttributes()
+    {
+        return array(
+            'title' => $this->title,
+            'description' => $this->description,
+        );
+    }
+
+    public function isOverdue()
+    {
+        if (!$this->hasDeadline()) {
+            return false;
+        }
+
+        return (strtotime($this->deadline) < time());
+    }
+
+
+    /*   
+     * Fonctions ajoutées 
+     * 					  */
+    
     /* La tâche a-t-elle des enfants ? */
     public function hasChild()
     {	$nbEnfants = Yii::$app->db->createCommand('SELECT COUNT(*) FROM task WHERE task.gauche BETWEEN ' . $this->gauche . ' AND ' . $this->droite)->queryOne();
@@ -239,12 +289,41 @@ class Task extends ContentActiveRecord implements \humhub\modules\search\interfa
 		}
 		else return false;
 	}
+	/* Récupérer le nombre d'enfants */
 	public function getChildrenNumber()
 	{
-		$nbEnfants = Yii::$app->db->createCommand('SELECT COUNT(*) as compte FROM task WHERE task.gauche BETWEEN ' . $this->gauche . ' AND ' . $this->droite)->queryOne();
-		return $nbEnfants['compte']-1;
+		$req = Yii::$app->db->createCommand('SELECT COUNT(*) as compte FROM task WHERE task.gauche BETWEEN ' . $this->gauche . ' AND ' . $this->droite)->queryOne();
+		return $req['compte']-1;
 	}
-	/* Récupération du niveau de la tâche */
+	/* Récupérer la deadline de la tâche mère (pour valider l'échéance des sous-tâches (< fin tâche mère) ) */
+	public function getMotherDeadline()
+	{
+		$req = Yii::$app->db->createCommand('
+		SELECT parent.deadline
+		FROM task AS node,
+        task AS parent
+		WHERE node.gauche BETWEEN parent.gauche AND parent.droite
+        AND node.id = ' . $this->id . ' 
+		ORDER BY parent.gauche 
+		LIMIT 1')->queryOne();
+		
+		return $req['deadline'];
+	}
+	/* Récupérer les sous-tâches d'une tâche (chemin complet) */
+	public function getCheminComplet()
+	{
+		$req = Yii::$app->db->createCommand('
+		SELECT node.id
+		FROM task AS node,
+        task AS parent
+		WHERE node.gauche BETWEEN parent.gauche AND parent.droite
+        AND parent.id = ' . $this->id . '
+		ORDER BY node.gauche
+		LIMIT 1,30')->queryAll();
+		
+		return $req;
+	}
+	/* Récupérer le niveau de la tâche */
 	public function getNiveau()
 	{
 		$profondeur = Yii::$app->db->createCommand('SELECT node.title, (COUNT(parent.id) - 1) AS depth
@@ -292,49 +371,5 @@ class Task extends ContentActiveRecord implements \humhub\modules\search\interfa
 					}
 					else return 0;
 	}
-    public static function GetUsersOpenTasks()
-    {
-        $query = self::find();
-        $query->leftJoin('task_user', 'task.id=task_user.task_id');
-        $query->where(['task_user.user_id' => Yii::$app->user->id, 'task.status' => self::STATUS_OPEN]);
-
-        return $query->all();
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getContentName()
-    {
-        return Yii::t('TasksModule.models_Task', "Task");
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getContentDescription()
-    {
-        return $this->title;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getSearchAttributes()
-    {
-        return array(
-            'title' => $this->title,
-            'description' => $this->description,
-        );
-    }
-
-    public function isOverdue()
-    {
-        if (!$this->hasDeadline()) {
-            return false;
-        }
-
-        return (strtotime($this->deadline) < time());
-    }
-
+   
 }

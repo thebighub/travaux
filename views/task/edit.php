@@ -2,13 +2,14 @@
 use yii\bootstrap\ActiveForm;
 use yii\helpers\Html;
 use yii\helpers\Url;
+
 ?>
 
 <div class="modal-dialog modal-dialog-normal animated fadeIn">
     <div class="modal-content">
 
         <?php $form = ActiveForm::begin(); ?>
-	
+		
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
             <?php if (Yii::$app->request->get('id') != null && $parent == 0) : ?>
@@ -72,7 +73,7 @@ use yii\helpers\Url;
                 <div class="col-md-4">
 
                     <div class="form-group">
-                        <?php echo $form->field($task, 'deadline')->widget(yii\jui\DatePicker::className(), ['dateFormat' => Yii::$app->params['formatter']['defaultDateFormat'], 'clientOptions' => [], 'options' => ['class' => 'form-control', 'placeholder' => Yii::t('TasksModule.views_task_edit', 'Deadline')]]); ?>
+                        <?php echo $form->field($task, 'deadline')->widget(yii\jui\DatePicker::className(), ['dateFormat' => Yii::$app->params['formatter']['defaultDateFormat'] , 'clientOptions' => [], 'options' => ['class' => 'form-control', 'placeholder' => 'Max : ' . $datelimite . '']]); ?>
                     </div>
 
                 </div>
@@ -107,7 +108,6 @@ use yii\helpers\Url;
 
 <?php ActiveForm::end(); ?>
 
-
 <script type="text/javascript">
 
     $('.autosize').autosize();
@@ -120,4 +120,3 @@ use yii\helpers\Url;
     });
 
 </script>
-<!-- script pour le slider -->

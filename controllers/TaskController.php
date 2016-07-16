@@ -34,6 +34,7 @@ class TaskController extends ContentContainerController
 
         $id = (int) Yii::$app->request->get('id'); // on récupère l'id de la tâche
         $parent = (int) Yii::$app->request->get('parent'); // on récupère l'id de la tâche parente 
+        $datelimite=Yii::$app->request->get('datelimite');
         // on récupère la tâche en cours, grâce à l'id passé en paramètre ($id)
         $task = Task::find()->contentContainer($this->contentContainer)->readable()->where(['task.id' => $id])->one();
 		
@@ -132,7 +133,7 @@ class TaskController extends ContentContainerController
         }
         
 		// On affiche la page edit.php en passant l'objet tâche et l'id de la tâche parente en paramètres
-        return $this->renderAjax('edit', ['task'=>$task,'parent'=>$parent]);
+        return $this->renderAjax('edit', ['task'=>$task,'parent'=>$parent,'datelimite'=>$datelimite]);
 
     }
 
