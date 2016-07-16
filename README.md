@@ -29,7 +29,7 @@ TODO
 Credits
 -------  
 Merci à Mike Hillyer et son article [Managing hierarchical data in MySQL](http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/)  
+  
 Pour plus d'informations :  
-
   <https://github.com/humhub/humhub-modules-tasks>  
   <https://github.com/thebighub/travaux>
