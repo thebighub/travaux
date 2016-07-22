@@ -13,14 +13,11 @@ humhub\modules\tasks\Assets::register($this);
         <div id="open-tasks">
             <?php foreach ($tasks as $task) : ?>
                 
-				<?php 
-				$soustaches=$task->getCheminComplet();
-				foreach($soustaches as $st) echo $st['id'];
-				// On récupère la date limite 
+				<?php // On récupère la date limite 
 				$datelimite=$task->getMotherDeadline();
 				$datelimite=strtotime($datelimite);
 				$datelimite=date("d M.", $datelimite);
-				
+				$progTacheMere=0;
 				// On récupère le niveau de la tâche
 				$niveau = $task->getNiveau();
 				// Marge de 25 px pour chaque niveau 
@@ -214,7 +211,22 @@ humhub\modules\tasks\Assets::register($this);
 							</div>
 							<!-- Ajout du bouton 'Priorité' -->
 							<div class="task-controls pull-right">
-								<i class="fa fa-star-o" onclick="cacherSousTaches(<?php echo $task->id; ?>);"></i>
+								<?php if($task->priority == 5) {$classPriority = 'rouge';} else if($task->priority == 3){$classPriority = 'yellow';}else{$classPriority = 'green';}
+                            echo \humhub\widgets\AjaxButton::widget([
+                                'label' => '<i class="priority tt fa fa-star ' . $classPriority . '"
+											   id="priority_' . $task->id .'" 
+                                               data-toggle="tooltip" data-placement="top" data-original-title="Changer la priorité" 
+                                               onclick="changePriority(' . $task->priority . ',' . $task->id . ')"></i>',
+                                'tag' => 'a',
+                                'ajaxOptions' => [
+                                    'url' => $contentContainer->createUrl('/tasks/task/change-priority', array('taskId' => $task->id, 'priority' => $task->priority)),
+                                ],
+                                'htmlOptions' => [
+                                    'id' => "TaskChangePriority_" . $task->id
+                                ]
+                            ]);
+                            ?>
+							
 							</div>
 							
                             <div class="clearfix"></div>
@@ -499,14 +511,24 @@ humhub\modules\tasks\Assets::register($this);
 		$('#task_' + id).insertBefore('#task_' + parent);
 		}*/
 	// Fonction pour cacher les sous-tâches
-	function cacherSousTaches(id) {
+	function changePriority(priority, id) {
 			
-			$('#task_' + id).addClass('hidden');
+			if (priority == 1) {
+			$('#priority_' + id).removeClass('green');
+			$('#priority_' + id).addClass('yellow');
+			}
+			else if (priority == 3){
+			$('#priority_' + id).removeClass('yellow');
+			$('#priority_' + id).addClass('rouge');
+			}
+			else {
+			$('#priority_' + id).removeClass('rouge');
+			$('#priority_' + id).addClass('green');
+			}
 		}
     $(document).ready(function () {
         handleCompletedTasks();
     });
-
 
 </script>
 

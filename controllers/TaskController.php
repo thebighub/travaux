@@ -38,11 +38,7 @@ class TaskController extends ContentContainerController
         // on récupère la tâche en cours, grâce à l'id passé en paramètre ($id)
         $task = Task::find()->contentContainer($this->contentContainer)->readable()->where(['task.id' => $id])->one();
 		
-		if ($parent != null) {
-			$tacheMere = Task::findOne($parent);
-			$maDroite = $tacheMere->droite;
-			$maGauche = $tacheMere->gauche;
-		}
+	
 		
 		/* Création d'une nouvelle tâche */
 		
@@ -67,8 +63,8 @@ class TaskController extends ContentContainerController
 					$task->droite = 2;
 				} else { // Si on ajoute une nouvelle tâche, on adapte les valeurs de gauche et droite
 					$maxDroite = $derniereTache->droite;
-					$task->gauche = $derniereTache->droite + 1;
-					$task->droite = $task->gauche + 1;
+					$task->gauche = $maxDroite + 1;
+					$task->droite = $maxDroite + 2;
 				}
 				
 				// on spécifie que cette tâche appartient au contentContainer
@@ -79,54 +75,37 @@ class TaskController extends ContentContainerController
 		/* Ajout d'une sous-tâche */
 		
 		if ($task === null && $parent != null) {
-			
-				Task::updateAllCounters(['droite' => 2], 'droite > ' . $maDroite);
-				Task::updateAllCounters(['gauche' => 2], 'gauche > ' . $maDroite);
+				$tacheMere = Task::findOne($parent);
+				$maDroite = $tacheMere->droite;
+				$maGauche = $tacheMere->gauche;
+				
 			// Check permission to create new task
 				if (!$this->contentContainer->permissionManager->can(new \humhub\modules\tasks\permissions\CreateTask())) {
 					throw new HttpException(400, 'Access denied!');
 				}
+				Task::updateAllCounters(['droite' => 2], 'droite > ' . $maGauche);
+				Task::updateAllCounters(['gauche' => 2], 'gauche > ' . $maGauche);
 				
 				$task = new Task();
 				$task->status = 1 ; // en cours
 				
 				// on précise le content container
 				$task->content->container = $this->contentContainer;
-				//  On augmente toutes la droite de la tache mère de 2
-				$tacheMere->droite += 2;
-				// La gauche de la sous tache prend la droite de la tache
-				$task->gauche = $maDroite;
-				// Sa droite prend sa gauche + 1
-				$task->droite = $maDroite + 1;
-				$task->description = "" . $maDroite;
+				//  On augmente  la droite de la tache mère de 2
+				//$tacheMere->droite += 2;
+				// La gauche de la sous tache prend la gauche de la tache + 1
+				$task->gauche = $maGauche + 1;
+				// Sa droite prend sa gauche + 2
+				$task->droite = $maGauche + 2;
+				//$task->description = "" . $maGauche;
+				
 		}
 		
 		// on envoie les modifications dans la base et on regarde si ça passe, si oui redirection vers la page show.php
         if ($task->load(Yii::$app->request->post())) {
             if ($task->validate()) {
                 if ($task->save()) {
-					if($parent!=null){
-					// On sauvegarde la modification de la tache mère
-						$tacheMere->save();
-						
-
-				/* Test d'insertion de la tâche dans la table CalendarEntry -> marche pas
-				 * 
-				 * $calendarEntry->validate();
-				$calendarEntry = new CalendarEntry;
-				$calendarEntry->content->container = $this->contentContainer;
-				$calendarEntry->start_time = '00:00';
-				$calendarEntry->end_time = '23:59';
-				$calendarEntry->all_day = 1;
-				$calendarEntry->participation_mode = 0;
-				$calendarEntry->title = $task->title;
-				$calendarEntry->description = $task->description;
-				$calendarEntry->start_datetime = $task->deadline;
-				$calendarEntry->end_datetime = $task->deadline;
-				$calendarEntry->start_datetime = preg_replace('/\d{2}:\d{2}:\d{2}$/', '', $calendarEntry->start_datetime);
-				$calendarEntry->end_datetime = preg_replace('/\d{2}:\d{2}:\d{2}$/', '', $calendarEntry->end_datetime);
-				$calendarEntry->save();*/ 
-				}
+					
                     return $this->htmlRedirect($this->contentContainer->createUrl('show'));
                 }
             }
@@ -196,10 +175,22 @@ class TaskController extends ContentContainerController
     public function actionChangeStatus()
     {
         $task = $this->getTaskById((int) Yii::$app->request->get('taskId'));
+        $subtasks = $task->getCheminComplet();
         $status = (int) Yii::$app->request->get('status');
         $task->changeStatus($status);
+        if($subtasks!=null) {foreach($subtasks as $st){$st->changeStatus($status);}}
+        
         return $this->renderTask($task);
     }
+    // Ajout changer la priorité
+    public function actionChangePriority()
+    {
+		$task = $this->getTaskById((int) Yii::$app->request->get('taskId'));
+		$priority = (int) Yii::$app->request->get('priority');
+		$task->changePriority($priority);
+		return $this->renderTask($task);
+	}
+    
 	// Afficher les modifications
     protected function renderTask($task)
     {

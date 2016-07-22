@@ -32,6 +32,9 @@ class Task extends ContentActiveRecord implements \humhub\modules\search\interfa
     // Status
     const STATUS_OPEN = 1;
     const STATUS_FINISHED = 5;
+	// Ajout priorité
+    const PRIORITY_LOW = 1;
+    const PRIORITY_HIGH = 5;
 
     public $wallEntryClass = 'humhub\modules\tasks\widgets\WallEntry';
     public $autoAddToWall = true;
@@ -46,7 +49,7 @@ class Task extends ContentActiveRecord implements \humhub\modules\search\interfa
         return array(
             [['title'], 'required'],
             [['description'], 'string'],
-            [['max_users'], 'integer'],
+            [['max_users','priority'], 'integer'],
             [['deadline'], \humhub\libs\DbDateValidator::className(), 'format' => Yii::$app->params['formatter']['defaultDateFormat']],
             [['max_users', 'assignedUserGuids', 'description', 'percent'], 'safe'],
         );
@@ -210,20 +213,34 @@ class Task extends ContentActiveRecord implements \humhub\modules\search\interfa
                 $notification->originator = Yii::$app->user->getIdentity();
                 $notification->send($this->content->user);
             }
-
+			// On passe la progression à 100%
             $this->percent = 100;
         } else {
             // Try to delete TaskFinishedNotification if exists
             $notification = new \humhub\modules\tasks\notifications\Finished();
             $notification->source = $this;
             $notification->delete($this->content->user);
+            // On passe la progression à 0%
+            $this->percent = 0;
         }
 
         $this->save();
 
         return true;
     }
-
+	// Ajout fonction pour changer la priorité
+	public function changePriority($oldPriority) {
+		
+		if ($oldPriority == 1) {
+			$this->priority = 3;
+		}
+		else if($oldPriority == 3) {
+			$this->priority = 5;
+		} else 
+			$this->priority = 1;
+		$this->save();
+		return true;
+	}
     public function hasDeadline()
     {
         if ($this->deadline != '0000-00-00 00:00:00' && $this->deadline != '' && $this->deadline != 'NULL') {

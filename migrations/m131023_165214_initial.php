@@ -14,6 +14,7 @@ class m131023_165214_initial extends Migration
             'description' => 'text DEFAULT NULL',
             'deathline' => 'datetime DEFAULT NULL',
             'max_users' => 'int(11) NOT NULL',
+            'priority' => 'int(11) NOT NULL DEFAULT 1',
             'status' => 'int(11) NOT NULL',
             'percent' => 'smallint(6) NOT NULL',
             'gauche' => 'int(11) NOT NULL',

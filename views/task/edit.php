@@ -25,7 +25,7 @@ use yii\helpers\Url;
             <?php endif; ?>
         </div>
 		<?php if($parent != 0) : ?>
-		<div>Parent : <?php echo $parent; ?></div>
+		<div class="form-group">Tâche mère : <?php echo $parent; ?></div>
 		<?php endif; ?>
         <div class="modal-body">
 				<!-- Titre -->
@@ -49,6 +49,9 @@ use yii\helpers\Url;
 					],
 				]) ?>
 			</div>
+			<input type="text" id="slider-value" />
+			<div class="clear"></div>
+			
 			<?php endif; ?>
 			
             <div class="row">
