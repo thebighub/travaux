@@ -26,19 +26,19 @@ class TaskController extends ContentContainerController
             'canCreateNewTasks' => $canCreateNewTasks,
             
         ]);
-
-
     }
 	// fonction exécutée lorsqu'on clique sur SAVE dans edit.php 
     public function actionEdit() {
 
         $id = (int) Yii::$app->request->get('id'); // on récupère l'id de la tâche
         $parent = (int) Yii::$app->request->get('parent'); // on récupère l'id de la tâche parente 
+        if($parent!=null) {
+			$tacheMere = Task::find()->contentContainer($this->contentContainer)->readable()->where(['task.id' => $parent])->one();
+		}
+		// On récupère la date limite pour l'afficher dans la page edit.php
         $datelimite=Yii::$app->request->get('datelimite');
         // on récupère la tâche en cours, grâce à l'id passé en paramètre ($id)
         $task = Task::find()->contentContainer($this->contentContainer)->readable()->where(['task.id' => $id])->one();
-		
-	
 		
 		/* Création d'une nouvelle tâche */
 		
@@ -52,9 +52,7 @@ class TaskController extends ContentContainerController
 				$derniereTache = Task::find()->contentContainer($this->contentContainer)->readable()->orderBy(['droite'=>SORT_DESC])->one();
 				
 				// on crée un nouvel objet 'tâche'
-				$task = new Task();
-				// on crée un nouvel objet 'entrée de calendrier'
-				
+				$task = new Task();				
 				// on passe son statut à 1 (1 = en cours, 5 = terminé)
 				$task->status = 1;
 				// si la dernière tâche n'existe pas (si c'est la première insertion dans la table)
@@ -72,40 +70,36 @@ class TaskController extends ContentContainerController
 				
 			}
 				
-		/* Ajout d'une sous-tâche */
+		/* Ajout d'une sous-tâche de niveau 1 */
 		
 		if ($task === null && $parent != null) {
-				$tacheMere = Task::findOne($parent);
-				$maDroite = $tacheMere->droite;
-				$maGauche = $tacheMere->gauche;
+				$tmDroite = $tacheMere->droite;
+				$tmGauche = $tacheMere->gauche;
 				
 			// Check permission to create new task
 				if (!$this->contentContainer->permissionManager->can(new \humhub\modules\tasks\permissions\CreateTask())) {
 					throw new HttpException(400, 'Access denied!');
 				}
-				Task::updateAllCounters(['droite' => 2], 'droite > ' . $maGauche);
-				Task::updateAllCounters(['gauche' => 2], 'gauche > ' . $maGauche);
-				
+			// On augmente de 2 partout à droite de la tâche mère, + la tâche mère elle-même pour laisser de la place à la sous-tâche
+				Task::updateAllCounters(['droite' => 2], 'droite >= ' . $tmDroite);
+				Task::updateAllCounters(['gauche' => 2], 'gauche > ' . $tmDroite);
+			// Nouvel objet tâche
 				$task = new Task();
 				$task->status = 1 ; // en cours
 				
-				// on précise le content container
+			// on précise le content container
 				$task->content->container = $this->contentContainer;
-				//  On augmente  la droite de la tache mère de 2
-				//$tacheMere->droite += 2;
-				// La gauche de la sous tache prend la gauche de la tache + 1
-				$task->gauche = $maGauche + 1;
-				// Sa droite prend sa gauche + 2
-				$task->droite = $maGauche + 2;
-				//$task->description = "" . $maGauche;
-				
+			// La gauche de la sous tache prend la droite de la tache
+				$task->gauche = $tmDroite;
+			// Sa droite prend sa droite + 1
+				$task->droite = $tmDroite+1;			
 		}
 		
 		// on envoie les modifications dans la base et on regarde si ça passe, si oui redirection vers la page show.php
         if ($task->load(Yii::$app->request->post())) {
             if ($task->validate()) {
                 if ($task->save()) {
-					
+				// On affiche la page show.php
                     return $this->htmlRedirect($this->contentContainer->createUrl('show'));
                 }
             }
@@ -147,8 +141,6 @@ class TaskController extends ContentContainerController
         Yii::$app->response->format='json';
         return ['status'=>'ok'];
     }
-
-
 
 	// Fonction pour assigner un utilisateur à une tâche
     public function actionAssign()
@@ -326,6 +318,4 @@ class TaskController extends ContentContainerController
 			* 
 			* 
     }*/
-	
-	
 }

@@ -198,7 +198,8 @@ humhub\modules\tasks\Assets::register($this);
 
                                 <?php endforeach; ?>
                             </div>
-                            <!-- Ajout du bouton sous-tâche -->
+                            <!-- Bouton ajout sous-tâche -->
+                            <?php if ($canCreateNewTasks) : ?>
                             <?php if ($niveau==0) 
 										$messageT = 'Ajouter sous-tâche'; 
 								  else  $messageT = 'Ajouter sous-sous-tâche'; ?>
@@ -209,6 +210,7 @@ humhub\modules\tasks\Assets::register($this);
                                    data-target="#globalModal" data-toggle="tooltip"
                                    data-placement="top" data-original-title="<?php echo $messageT; ?>"><i class="fa fa-plus"></i></a>
 							</div>
+							<?php endif; ?>
 							<!-- Ajout du bouton 'Priorité' -->
 							<div class="task-controls pull-right">
 								<?php if($task->priority == 5) {$classPriority = 'rouge';} else if($task->priority == 3){$classPriority = 'yellow';}else{$classPriority = 'green';}
@@ -235,8 +237,6 @@ humhub\modules\tasks\Assets::register($this);
                         <!-- Bloc description (masqué par défaut, visible en cliquant sur l'oeil) -->
 						<div class="media-body description">
 						<!-- Barre de progression -->
-						
-							
 							<div id="progress_<?php echo $task->id;  ?>" class="collapse">
 							<div class="progress" style="height:15px;line-height:15px;">
 							
@@ -247,9 +247,6 @@ humhub\modules\tasks\Assets::register($this);
 							</div>
 							</div>
 							<div class="collapse" id="bloc_description_<?php echo $task->id; ?>">
-							
-							
-							
 								<?php echo humhub\widgets\MarkdownView::widget(array('markdown' => $task->description)); ?>
 							</div>
 						</div>
@@ -266,7 +263,6 @@ humhub\modules\tasks\Assets::register($this);
                             })
                         </script>
 
-
                     </div>
                 <?php endif; ?>
             <?php endforeach; ?>
@@ -275,16 +271,13 @@ humhub\modules\tasks\Assets::register($this);
             <?php endif; ?>
         </div>
 
-
         <br>
-
 
         <?php if ($canCreateNewTasks): ?>
             <a href="<?php echo $contentContainer->createUrl('edit'); ?>" class="btn btn-primary"
                data-target="#globalModal"><i
                     class="fa fa-plus"></i> <?php echo Yii::t('TasksModule.views_task_show', 'Add Task'); ?></a>
             <?php endif; ?>
-
 
         <a data-toggle="collapse" id="completed-task-link" href="#completed-tasks" class="show-completed-tasks-link"
            style="display: none;"><i
@@ -311,7 +304,6 @@ humhub\modules\tasks\Assets::register($this);
                             }
                         }
                         ?>
-
 
                         <div class="open-check hidden">
                             <?php
@@ -348,8 +340,7 @@ humhub\modules\tasks\Assets::register($this);
                             ]);
                             ?>
                         </div>
-						
-
+					
                         <div class="media-body">
                             <span class="task-title task-completed pull-left"><?php echo $task->title; ?></span>
 
@@ -364,13 +355,11 @@ humhub\modules\tasks\Assets::register($this);
                                 if (date("d.m.yy", $timestamp) <= date("d.m.yy", time())) {
                                     $class = "label label-danger";
 								}
-                                
-                                
+                   
                                 ?>
                                 <span
                                     class="<?php echo $class; ?> task-completed-controls"><?php echo '<i class="fa fa-clock-o"></i>' . date("d. M", $timestamp); ?></span>
                                 <?php endif; ?>
-
 
                             <div class="task-controls end pull-right">
 
@@ -378,7 +367,6 @@ humhub\modules\tasks\Assets::register($this);
                                    class="tt"
                                    data-target="#globalModal" data-toggle="tooltip"
                                    data-placement="top" data-original-title="Modifier la <?php if($niveau>0) echo 'sous-'; ?>tâche"><i class="fa fa-pencil"></i></a>
-
 
                                 <?php
                                 echo humhub\widgets\ModalConfirm::widget(array(
@@ -407,7 +395,6 @@ humhub\modules\tasks\Assets::register($this);
                                 </a>
 
                             </div>
-
 
                             <div class="task-controls pull-right assigned-users task-completed-controls"
                                  style="display: inline;">
@@ -441,7 +428,6 @@ humhub\modules\tasks\Assets::register($this);
                             })
                         </script>
 
-
                     </div>
                 <?php endif; ?>
             <?php endforeach; ?>
@@ -460,7 +446,6 @@ humhub\modules\tasks\Assets::register($this);
             backgroundColor: "#fff"
         }, 2000);
     }
-
 
     function completeTask(id) {
         $('#task_' + id + ' .open-check').addClass('hidden');
@@ -531,7 +516,3 @@ humhub\modules\tasks\Assets::register($this);
     });
 
 </script>
-
-
-
-

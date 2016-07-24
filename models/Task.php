@@ -388,5 +388,8 @@ class Task extends ContentActiveRecord implements \humhub\modules\search\interfa
 					}
 					else return 0;
 	}
+	// Fonction pour trouver la dernière sous-tâche d'une tâche 
+	
+	
    
 }
